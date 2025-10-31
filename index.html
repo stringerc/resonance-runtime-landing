@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resonance Engine – Patent‑Pending Performance Optimization</title>
+  <meta name="description" content="Telemetry-driven, explainable, cross-platform performance optimization for developers.">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="container">
+    <h1>Resonance Engine</h1>
+    <p class="tag">Patent‑Pending • Telemetry‑Driven • Explainable</p>
+    <p class="lead">+35–45% perceived responsiveness. Telemetry‑driven, idle‑window, multi‑system optimization with explainable decisions.</p>
+    <div class="cta">
+      <a class="btn" href="#demo">Request Demo</a>
+      <a class="btn ghost" href="#learn">Learn More</a>
+    </div>
+  </header>
+
+  <section id="learn" class="container grid">
+    <div>
+      <h2>Why Resonance?</h2>
+      <ul>
+        <li>Telemetry‑driven gating protects foreground latency</li>
+        <li>Coordinated Memory • I/O • CPU • SSD optimization</li>
+        <li>Cross‑platform: macOS • Windows • Linux</li>
+        <li>Explainable: decision records and metrics</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Measured Impact</h2>
+      <ul>
+        <li>Latency P95: −15–25%</li>
+        <li>Responsiveness: +35–45%</li>
+        <li>Throughput: ≥95% baseline</li>
+        <li>Battery: −5–10% drain/hr</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="container">
+    <h2>Pricing</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Free</h3>
+        <p>Core gating, CLI, local dashboard</p>
+        <p class="price">$0</p>
+      </div>
+      <div class="card">
+        <h3>Pro</h3>
+        <p>Auto‑tune, templates, reports</p>
+        <p class="price">$99 / year</p>
+      </div>
+      <div class="card">
+        <h3>Enterprise</h3>
+        <p>Teams, SSO, API, priority support</p>
+        <p class="price">Contact</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="demo" class="container">
+    <h2>Request a Demo</h2>
+    <form action="https://formspree.io/f/mayvzyed" method="POST" class="form">
+      <input name="name" placeholder="Your name" required>
+      <input type="email" name="email" placeholder="Your email" required>
+      <textarea name="message" placeholder="Company, use case, timeline" rows="4"></textarea>
+      <button class="btn" type="submit">Request Demo</button>
+    </form>
+    <p class="tag" style="margin-top:12px">Or email: <a href="mailto:hello@resonance.syncscript.app">hello@resonance.syncscript.app</a></p>
+  </section>
+
+  <footer class="container foot">
+    <p>© 2025 Resonance Engine. Patent Pending. · <a href="/support/index.html" style="color:#94a3b8">Support</a></p>
+  </footer>
+
+  <!-- AI Chat Button -->
+  <button id="aiChatBtn" class="ai-chat-btn" aria-label="AI Assistant">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      <path d="M13 8H7M17 12H7"/>
+    </svg>
+  </button>
+
+  <!-- AI Chat Modal -->
+  <div id="aiChatModal" class="ai-chat-modal" style="display: none;">
+    <div class="ai-chat-header">
+      <h3>AI Assistant</h3>
+      <button id="aiChatClose" class="ai-chat-close">&times;</button>
+    </div>
+    <div id="aiChatMessages" class="ai-chat-messages"></div>
+    <div class="ai-chat-input-container">
+      <input type="text" id="aiChatInput" placeholder="Ask me anything..." class="ai-chat-input">
+      <button id="aiChatSend" class="ai-chat-send">Send</button>
+    </div>
+  </div>
+
+  <script>
+    // AI Chat functionality
+    const chatBtn = document.getElementById('aiChatBtn');
+    const chatModal = document.getElementById('aiChatModal');
+    const chatClose = document.getElementById('aiChatClose');
+    const chatMessages = document.getElementById('aiChatMessages');
+    const chatInput = document.getElementById('aiChatInput');
+    const chatSend = document.getElementById('aiChatSend');
+    let isLoading = false;
+
+    // Open/close modal
+    chatBtn.addEventListener('click', () => {
+      chatModal.style.display = chatModal.style.display === 'none' ? 'block' : 'none';
+      if (chatModal.style.display === 'block') {
+        chatInput.focus();
+        // Add welcome message if empty
+        if (chatMessages.children.length === 0) {
+          addMessage('assistant', "Hello! I'm your AI assistant. I can help you learn about Resonance Runtime, answer questions about performance optimization, or assist with demo requests. How can I help you today?");
+        }
+      }
+    });
+
+    chatClose.addEventListener('click', () => {
+      chatModal.style.display = 'none';
+    });
+
+    // Send message
+    function sendMessage() {
+      const message = chatInput.value.trim();
+      if (!message || isLoading) return;
+
+      addMessage('user', message);
+      chatInput.value = '';
+      isLoading = true;
+      chatSend.disabled = true;
+
+      // Show typing indicator
+      const typingId = addMessage('assistant', '...', true);
+
+      // Call AI API - using SyncScript backend
+      fetch('https://syncscript-backend.onrender.com/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: message,
+          context: 'resonance-runtime'
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        removeMessage(typingId);
+        const response = data?.data?.response || data?.response || 'Sorry, I could not process that request.';
+        // Extract user-friendly message if wrapped
+        const cleanResponse = response.replace(/\[USER_MESSAGE\]([\s\S]*?)\[\/USER_MESSAGE\]/g, '$1').trim() || response;
+        addMessage('assistant', cleanResponse);
+      })
+      .catch(err => {
+        removeMessage(typingId);
+        addMessage('assistant', 'Sorry, I\'m having trouble connecting right now. Please try again later or email us at hello@resonance.syncscript.app');
+        console.error('AI Chat Error:', err);
+      })
+      .finally(() => {
+        isLoading = false;
+        chatSend.disabled = false;
+        chatInput.focus();
+      });
+    }
+
+    chatSend.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Keyboard shortcut: Cmd+K or Ctrl+K
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        chatBtn.click();
+      }
+    });
+
+    function addMessage(role, text, isTyping = false) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `ai-chat-message ai-chat-message-${role}`;
+      if (isTyping) msgDiv.className += ' ai-chat-typing';
+      msgDiv.textContent = text;
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      return msgDiv;
+    }
+
+    function removeMessage(element) {
+      if (element && element.parentNode) {
+        element.parentNode.removeChild(element);
+      }
+    }
+  </script>
+</body>
+</html>
