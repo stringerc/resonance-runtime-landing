@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "framework": null,
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "installCommand": "",
+  "rewrites": [
+    {
+      "source": "/styles.css",
+      "destination": "/styles.css"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
