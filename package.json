@@ -1,0 +1,9 @@
+{
+  "name": "resonance-runtime-landing",
+  "version": "1.0.0",
+  "description": "Resonance Runtime landing page",
+  "scripts": {
+    "build": "echo 'Static site - no build needed'"
+  }
+}
+
