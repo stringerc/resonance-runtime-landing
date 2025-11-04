@@ -136,31 +136,42 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // Fetch subscription details
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   
-  // Create or update license
-  await prisma.license.upsert({
-    where: { userId }, // One license per user
-    create: {
-      userId,
-      stripeCustomerId: customerId,
-      stripeSubscriptionId: subscriptionId,
-      stripePriceId: subscription.items.data[0]?.price.id,
-      stripeProductId: subscription.items.data[0]?.price.product as string,
-      type: licenseType.toUpperCase() as any,
-      status: "ACTIVE",
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-    },
-    update: {
-      stripeCustomerId: customerId,
-      stripeSubscriptionId: subscriptionId,
-      stripePriceId: subscription.items.data[0]?.price.id,
-      stripeProductId: subscription.items.data[0]?.price.product as string,
-      type: licenseType.toUpperCase() as any,
-      status: "ACTIVE",
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-    },
+  // Check if license exists for this user
+  const existingLicense = await prisma.license.findFirst({
+    where: { userId },
   });
+  
+  if (existingLicense) {
+    // Update existing license
+    await prisma.license.update({
+      where: { id: existingLicense.id },
+      data: {
+        stripeCustomerId: customerId,
+        stripeSubscriptionId: subscriptionId,
+        stripePriceId: subscription.items.data[0]?.price.id,
+        stripeProductId: subscription.items.data[0]?.price.product as string,
+        type: licenseType.toUpperCase() as any,
+        status: "ACTIVE",
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      },
+    });
+  } else {
+    // Create new license
+    await prisma.license.create({
+      data: {
+        userId,
+        stripeCustomerId: customerId,
+        stripeSubscriptionId: subscriptionId,
+        stripePriceId: subscription.items.data[0]?.price.id,
+        stripeProductId: subscription.items.data[0]?.price.product as string,
+        type: licenseType.toUpperCase() as any,
+        status: "ACTIVE",
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      },
+    });
+  }
   
   console.log(`License activated for user ${userId}`);
 }
