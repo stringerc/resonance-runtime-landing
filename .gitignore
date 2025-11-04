@@ -31,6 +31,8 @@ yarn-error.log*
 vercel-env-vars.txt
 DEPLOYMENT_PLAN.md
 QUICK_DEPLOY.md
+DEPLOY_TO_VERCEL.md
+SETUP.md
 scripts/auto-setup.sh
 
 # vercel
