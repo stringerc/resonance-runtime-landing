@@ -10,6 +10,10 @@ export async function createResonanceCheckoutSession(
   successUrl: string,
   cancelUrl: string
 ) {
+  if (!stripe) {
+    throw new Error("Stripe is not configured. Please set STRIPE_SECRET_KEY.");
+  }
+  
   // Enterprise is custom pricing - contact sales
   if (licenseType === "enterprise") {
     throw new Error("Enterprise pricing is custom. Please contact sales.");
@@ -53,6 +57,10 @@ export async function createSyncscriptCheckoutSession(
   successUrl: string,
   cancelUrl: string
 ) {
+  if (!stripe) {
+    throw new Error("Stripe is not configured. Please set STRIPE_SECRET_KEY.");
+  }
+  
   // Free tier doesn't require checkout
   if (licenseType === "free") {
     throw new Error("Free tier does not require checkout");
@@ -121,6 +129,10 @@ export async function createOneTimeCheckout(
   successUrl: string,
   cancelUrl: string
 ) {
+  if (!stripe) {
+    throw new Error("Stripe is not configured. Please set STRIPE_SECRET_KEY.");
+  }
+  
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     mode: "payment",

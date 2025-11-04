@@ -89,9 +89,24 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    console.error("Registration error:", error);
+    // Log detailed error for debugging
+    console.error("Registration error:", {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+      code: error?.code,
+    });
+    
+    // Return more helpful error in development, generic in production
+    const isDev = process.env.NODE_ENV === "development";
     return NextResponse.json(
-      { error: "Internal server error" },
+      { 
+        error: "Internal server error",
+        ...(isDev && {
+          details: error?.message,
+          hint: "Check Vercel Function Logs for full error details",
+        }),
+      },
       { status: 500 }
     );
   }

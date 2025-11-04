@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { verifyPassword } from "@/lib/auth/password";
 import { checkAccountLockout, resetFailedLogins, recordFailedLogin } from "@/lib/auth/rate-limit";
 
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [

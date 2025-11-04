@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+
+
 type ResonanceLicenseType = "starter" | "pro";
 type SyncscriptLicenseType = "pro" | "team";
 

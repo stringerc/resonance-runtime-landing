@@ -67,38 +67,53 @@ npm run deploy:auto
 - Deployment confirmation
 - Post-deployment testing
 
+## ⚠️ IMPORTANT: Auto Cannot Execute Commands
+
+**Auto (Claude) CANNOT run terminal commands.**
+- ✅ Creates scripts and instructions
+- ✅ Analyzes errors
+- ✅ Coordinates tools
+- ❌ CANNOT execute `npm`, `git`, `node`, or shell commands
+
+**Solution**: Provide instructions below to Aider for execution.
+
 ## Phase 1: Immediate Fix & Verification
 
-### Step 1: Commit Current Fix (Aider)
-```bash
-cd /Users/Apple/New\ Math\ Discovery\ Documentation/webapp
-git add lib/auth/password.ts
-git commit -m "Fix zxcvbn configuration: use setOptions instead of passing options"
-git push origin main
+### Step 1: Commit Current Fix (DELEGATE TO AIDER)
+
+**Copy this to Aider:**
+```
+Execute these commands:
+1. cd "/Users/Apple/New Math Discovery Documentation/webapp"
+2. git add lib/auth/password.ts
+3. git commit -m "Fix zxcvbn configuration: use setOptions instead of passing options"
+4. git push origin main
+5. Report: "✅ Committed and pushed" or any errors
 ```
 
-### Step 2: Monitor Build (Aider)
-```bash
-# Check Vercel build status
-# Option 1: Use Vercel CLI if installed
-vercel ls
+### Step 2: Monitor Build (DELEGATE TO AIDER)
 
-# Option 2: Check GitHub Actions if configured
-gh run list
-
-# Option 3: Check Vercel dashboard via API (if token available)
-curl -H "Authorization: Bearer $VERCEL_TOKEN" \
-  https://api.vercel.com/v1/deployments?projectId=YOUR_PROJECT_ID
+**Copy this to Aider:**
+```
+Monitor Vercel deployment:
+1. Wait 30 seconds: sleep 30
+2. Check deployment status using one of:
+   - vercel ls (if Vercel CLI installed)
+   - Or check Vercel dashboard manually
+3. Report: "✅ Building" or "✅ Deployed" or "❌ Failed: [error]"
 ```
 
-### Step 3: Verify Build Success (Aider)
-```bash
-# Wait 2-3 minutes, then check
-# Look for successful build indicators:
-# - "✓ Compiled successfully"
-# - "✓ Linting and checking validity of types"
-# - No error messages
-# - Build completed with exit code 0
+### Step 3: Verify Build Success (DELEGATE TO AIDER)
+
+**Copy this to Aider:**
+```
+Verify build completed successfully:
+1. Check latest deployment status
+2. Look for these indicators:
+   - "✓ Compiled successfully"
+   - "✓ Linting and checking validity of types"
+   - Exit code 0
+3. Report findings
 ```
 
 ## Phase 2: If Build Fails - Research & Fix
