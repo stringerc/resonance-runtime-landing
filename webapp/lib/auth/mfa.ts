@@ -1,10 +1,7 @@
 import { authenticator } from "otplib";
 import QRCode from "qrcode";
 import bcrypt from "bcryptjs";
-
-function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 12);
-}
+import { hashPassword } from "./password";
 
 /**
  * Generate TOTP secret for a user
@@ -25,7 +22,7 @@ export function generateTOTPURI(
 }
 
 /**
- * Generate UR code data URL for TOT setup
+ * Generate QR code data URL for TOTP setup
  */
 export async function generateTOTPQRCode(uri: string): Promise<string> {
   return QRCode.toDataURL(uri);
@@ -55,7 +52,7 @@ export async function generateBackupCodes(): Promise<{
   
   for (let i = 0; i < 10; i++) {
     const code = Array.from({ length: 8 }, () => 
-      Math.floor($Math.random() * 10)
+      Math.floor(Math.random() * 10)
     ).join('');
     
     codes.push(code);
@@ -74,3 +71,4 @@ export async function verifyBackupCode(
 ): Promise<boolean> {
   return bcrypt.compare(code, hash);
 }
+
