@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
+import { ResonanceCheckoutButton } from "@/components/CheckoutButton";
 
 const pricingPlans = [
   {
@@ -158,7 +159,7 @@ export default async function PricingPage() {
               </ul>
 
               {session ? (
-                <CheckoutButton licenseType={plan.licenseType as "basic" | "pro" | "enterprise"} />
+                <ResonanceCheckoutButton licenseType={plan.licenseType === "basic" ? "starter" : plan.licenseType === "enterprise" ? "pro" : "pro"} />
               ) : (
                 <Link
                   href="/auth/signup"
@@ -208,48 +209,6 @@ export default async function PricingPage() {
         </div>
       </section>
     </div>
-  );
-}
-
-// Client component for checkout
-"use client";
-
-import { useState } from "react";
-
-function CheckoutButton({ licenseType }: { licenseType: "basic" | "pro" | "enterprise" }) {
-  const [loading, setLoading] = useState(false);
-  async function handleCheckout() {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/checkout/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ licenseType }),
-      });
-
-      const data = await response.json();
-
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert("Failed to create checkout session");
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error("Checkout error:", error);
-      alert("An error occurred. Please try again.");
-      setLoading(false);
-    }
-  }
-
-  return (
-    <button
-      onClick={handleCheckout}
-      disabled={loading}
-      className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      {loading ? "Processing..." : "Subscribe Now"}
-    </button>
   );
 }
 
