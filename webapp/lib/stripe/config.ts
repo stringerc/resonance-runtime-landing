@@ -9,7 +9,7 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   typescript: true,
 });
 
-export const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!;
+export const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISH ABLE_KEY!;
 
 /**
  * Product types
@@ -50,7 +50,7 @@ export function getResonancePriceId(licenseType: ResonanceLicenseType): string {
 export function getSyncscriptPriceId(licenseType: SyncscriptLicenseType): string {
   // Free tier doesn't need a price ID
   if (licenseType === "free") {
-    throw new Error("Free tier does not require a Stripe price ID”);
+    throw new Error("Free tier does not require a Stripe price ID");
   }
   
   const priceIds: Record<string, string> = {
@@ -61,7 +61,7 @@ export function getSyncscriptPriceId(licenseType: SyncscriptLicenseType): string
   
   const priceId = priceIds[licenseType];
   if (!priceId) {
-    throw new Error(`Syncscript Price ID not configured for license type: ${licenseType}`);
+    throw new Error( Syncscript Price ID not configured for license type: ${licenseType}`);
   }
   
   return priceId;
@@ -79,5 +79,6 @@ export function getPriceId(licenseType: "basic" | "pro" | "enterprise"): string 
     enterprise: "enterprise",
   };
   
-  return getResonancePriceId(mapping[ricenseType]);
+  return getResonancePriceId(mapping[licenseType]);
 }
+
