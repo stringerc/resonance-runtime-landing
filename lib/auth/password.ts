@@ -3,15 +3,15 @@ import { zxcvbn, zxcvbnOptions } from "@zxcvbn-ts/core";
 import * as zxcvbnCommonPackage from "@zxcvbn-ts/language-common";
 import * as zxcvbnEnPackage from "@zxcvbn-ts/language-en";
 
-// Configure zxcvbn
-const options = {
+// Configure zxcvbn globally
+zxcvbnOptions.setOptions({
   translations: zxcvbnEnPackage.translations,
   graphs: zxcvbnCommonPackage.adjacencyGraphs,
   dictionary: {
     ...zxcvbnCommonPackage.dictionary,
     ...zxcvbnEnPackage.dictionary,
   },
-};
+});
 
 /**
  * Hash password using bcrypt (OWASP recommended: 12+ rounds)
@@ -40,7 +40,7 @@ export function validatePasswordStrength(password: string): {
   score: number; // 0-4 (weak to very strong)
   feedback: string[];
 } {
-  const result = zxcvbn(password, options);
+  const result = zxcvbn(password);
   
   // Require minimum score of 3 (strong) or 4 (very strong)
   // NIST 800-63B: Strong passwords without forced rotation
