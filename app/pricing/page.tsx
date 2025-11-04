@@ -158,8 +158,15 @@ export default async function PricingPage() {
                 ))}
               </ul>
 
-              {session ? (
-                <ResonanceCheckoutButton licenseType={plan.licenseType === "basic" ? "starter" : plan.licenseType === "enterprise" ? "pro" : "pro"} />
+              {plan.licenseType === "enterprise" ? (
+                <Link
+                  href="/contact"
+                  className="block w-full text-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-semibold"
+                >
+                  Contact Sales
+                </Link>
+              ) : session ? (
+                <ResonanceCheckoutButton licenseType={plan.licenseType === "basic" ? "starter" : "pro"} />
               ) : (
                 <Link
                   href="/auth/signup"

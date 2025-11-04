@@ -64,7 +64,7 @@ export default async function DashboardPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Plan</span>
-                <span className="font-semibold capitalize">{license.type.toLowerCase()}</span>
+                <span className="font-semibold capitalize">{license.type?.toLowerCase() || "N/A"}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Status</span>

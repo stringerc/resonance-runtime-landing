@@ -97,6 +97,8 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || (() => {
+    throw new Error("NEXTAUTH_SECRET is not set");
+  })(),
 };
 

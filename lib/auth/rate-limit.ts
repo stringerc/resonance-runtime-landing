@@ -2,10 +2,16 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
 // Initialize Redis client (Upstash serverless Redis)
+// Note: In production, these should be set. For development, rate limiting will fail gracefully.
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL || "",
   token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
 });
+
+// Warn if Redis is not configured (rate limiting will not work)
+if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+  console.warn("⚠️  Upstash Redis not configured. Rate limiting will not work.");
+}
 
 /**
  * Login attempts: 5 per 15 minutes per IP
