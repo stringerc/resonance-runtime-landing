@@ -8,7 +8,7 @@ import { prisma } from "@/lib/db";
 export async function GET() {
   try {
     // Test connection
-    const result = await prisma.$queryRaw& Select 1 as test&;
+    const result = await prisma.$queryRaw`SELECT 1 as test`;
     
     // Check if user exists
     const user = await prisma.user.findUnique({
@@ -34,3 +34,4 @@ export async function GET() {
     );
   }
 }
+
