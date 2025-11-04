@@ -1,0 +1,252 @@
+// Prisma Schema for Resonance Calculus Platform
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Account
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  passwordHash  String    // bcrypt hash
+  image         String?
+  
+  // MFA
+  mfaEnabled    Boolean   @default(false)
+  mfaSecret     String?   // TOTP secret (encrypted)
+  backupCodes   BackupCode[]
+  
+  // Sessions
+  sessions      Session[]
+  refreshTokens RefreshToken[]
+  
+  // Licenses
+  licenses      License[]
+  
+  // Payments
+  payments      Payment[]
+  
+  // Metrics (for dashboard)
+  metrics       UserMetric[]
+  
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  
+  @@index([email])
+  @@index([deletedAt])
+}
+
+// NextAuth Session
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime
+  
+  @@index([userId])
+  @@index([sessionToken])
+}
+
+// NextAuth Account (for OAuth providers if added later)
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+// NextAuth Verification Token
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Refresh Token (for JWT rotation)
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jti       String   @unique // JWT ID for revocation
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([jti])
+  @@index([token])
+}
+
+// MFA Backup Codes
+model BackupCode {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String   // bcrypt hash of backup code
+  used      Boolean   @default(false)
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+}
+
+// License Types - Resonance
+enum ResonanceLicenseType {
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+// License Types - Syncscript
+enum SyncscriptLicenseType {
+  FREE
+  PRO
+  TEAM
+  ENTERPRISE
+}
+
+// Product Type
+enum ProductType {
+  RESONANCE
+  SYNCSCRIPT
+}
+
+// Legacy License Type (for backward compatibility)
+enum LicenseType {
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+enum LicenseStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  TRIAL
+}
+
+// License/Subscription
+model License {
+  id                String        @id @default(uuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Stripe
+  stripeCustomerId  String?       @unique
+  stripeSubscriptionId String?     @unique
+  stripePriceId     String?        // Stripe Price ID
+  stripeProductId   String?        // Stripe Product ID
+  
+  // Product & License Info
+  productType       ProductType   @default(RESONANCE)
+  resonanceType     ResonanceLicenseType?
+  syncscriptType    SyncscriptLicenseType?
+  // Legacy field for backward compatibility
+  type              LicenseType?
+  status            LicenseStatus @default(TRIAL)
+  
+  // Dates
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  trialEndsAt        DateTime?     // Trial period end
+  cancelledAt        DateTime?
+  
+  // Metadata
+  metadata          Json?         // Store additional license data
+  
+  // Relations
+  payments          Payment[]
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@index([userId])
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
+  @@index([status])
+}
+
+// Payment/Transaction History
+model Payment {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  licenseId         String?
+  license           License? @relation(fields: [licenseId], references: [id])
+  
+  // Stripe
+  stripePaymentIntentId String? @unique
+  stripeInvoiceId  String?  @unique
+  stripeChargeId   String?
+  
+  // Amount
+  amount           Int      // Amount in cents
+  currency         String   @default("usd")
+  
+  // Status
+  status           String   // succeeded, failed, pending, refunded
+  
+  // Metadata
+  metadata         Json?
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([stripePaymentIntentId])
+  @@index([stripeInvoiceId])
+}
+
+// Webhook Events (for idempotency)
+model WebhookEvent {
+  id          String   @id @default(uuid())
+  eventId     String   @unique // Stripe event ID
+  type        String   // Event type
+  processed   Boolean  @default(false)
+  processedAt DateTime?
+  errorMessage String?
+  payload     Json?    // Store full event payload for debugging
+  createdAt   DateTime @default(now())
+  
+  @@index([eventId])
+  @@index([type])
+  @@index([processed])
+}
+
+// User Metrics (for dashboard)
+model UserMetric {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Metrics data (can be extended)
+  data      Json     // Flexible JSON structure
+  timestamp DateTime @default(now())
+  
+  @@index([userId])
+  @@index([timestamp])
+}
+
