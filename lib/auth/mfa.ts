@@ -1,6 +1,7 @@
 import { authenticator } from "otplib";
 import QRCode from "qrcode";
 import bcrypt from "bcryptjs";
+import { hashPassword } from "./password";
 
 /**
  * Generate TOTP secret for a user
