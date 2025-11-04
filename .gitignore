@@ -27,6 +27,11 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.local.backup
+vercel-env-vars.txt
+DEPLOYMENT_PLAN.md
+QUICK_DEPLOY.md
+scripts/auto-setup.sh
 
 # vercel
 .vercel
