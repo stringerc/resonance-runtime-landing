@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../api/auth/[...nextauth]/route";
+import { ResonanceCheckoutButton } from "@/components/CheckoutButton";
 
 const pricingPlans = [
   {
@@ -176,7 +177,7 @@ export default async function ResonancePricingPage() {
                   Contact Sales
                 </Link>
               ) : session ? (
-                <CheckoutButton licenseType={plan.licenseType as "starter" | "pro"} />
+                <ResonanceCheckoutButton licenseType={plan.licenseType as "starter" | "pro"} />
               ) : (
                 <Link
                   href="/auth/signup"
@@ -215,52 +216,6 @@ export default async function ResonancePricingPage() {
         </div>
       </section>
     </div>
-  );
-}
-
-// Client component for checkout
-"use client";
-
-import { useState } from "react";
-
-function CheckoutButton({ licenseType }: { licenseType: "starter" | "pro" }) {
-  const [loading, setLoading] = useState(false);
-  
-  async function handleCheckout() {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/checkout/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          licenseType,
-          product: "resonance" // Specify this is for Resonance
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert("Failed to create checkout session");
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error("Checkout error:", error);
-      alert("An error occurred. Please try again.");
-      setLoading(false);
-    }
-  }
-
-  return (
-    <button
-      onClick={handleCheckout}
-      disabled={loading}
-      className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      {loading ? "Processing..." : "Subscribe Now"}
-    </button>
   );
 }
 
