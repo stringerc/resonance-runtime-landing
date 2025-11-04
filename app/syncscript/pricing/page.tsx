@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth/config";
 import { SyncscriptCheckoutButton } from "@/components/CheckoutButton";
 
 const pricingPlans = [
