@@ -2,14 +2,14 @@ import { stripe, getResonancePriceId, getSyncscriptPriceId, ProductType, Resonan
 
 /**
  * Create Stripe Checkout Session for Resonance
- * Uses hosted payment page (PCI-DSS SAQ 9 compliant)
+ * Uses hosted payment page (PCI-DSS SAQ A compliant)
  */
 export async function createResonanceCheckoutSession(
   userId: string,
   licenseType: ResonanceLicenseType,
   successUrl: string,
   cancelUrl: string
-J) {
+) {
   // Enterprise is custom pricing - contact sales
   if (licenseType === "enterprise") {
     throw new Error("Enterprise pricing is custom. Please contact sales.");
@@ -52,7 +52,7 @@ export async function createSyncscriptCheckoutSession(
   licenseType: SyncscriptLicenseType,
   successUrl: string,
   cancelUrl: string
-J) {
+) {
   // Free tier doesn't require checkout
   if (licenseType === "free") {
     throw new Error("Free tier does not require checkout");
@@ -76,7 +76,7 @@ J) {
     subscription_data: {
       metadata: {
         userId,
-        product: "syncscript" ,
+        product: "syncscript",
         licenseType,
       },
     },
@@ -98,10 +98,10 @@ J) {
  */
 export async function createCheckoutSession(
   userId: string,
-  licenseType: "basic" | "pro" | "enterprise" ,
+  licenseType: "basic" | "pro" | "enterprise",
   successUrl: string,
   cancelUrl: string
-J) {
+) {
   const mapping: Record<string, ResonanceLicenseType> = {
     basic: "starter",
     pro: "pro",
@@ -146,3 +146,4 @@ export async function createOneTimeCheckout(
   
   return session;
 }
+
