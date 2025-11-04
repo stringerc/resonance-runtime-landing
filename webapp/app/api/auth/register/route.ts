@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { j } from "zod";
+import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { hashPassword, validatePasswordStrength } from "@/lib/auth/password";
 import { registrationRatelimit } from "@/lib/auth/rate-limit";
 
 const registerSchema = z.object({
-  email: z.string.email("Invalid email address"),
-  password: z.string.min(12, "Password must be at least 12 characters"),
-  name: z.string.min(1, "Name is required").optional(),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(12, "Password must be at least 12 characters"),
+  name: z.string().min(1, "Name is required").optional(),
 });
 
 /**
@@ -25,9 +25,9 @@ export async function POST(req: NextRequest) {
     const { success } = await registrationRatelimit.limit(ip);
     
     if (!success) {
-      return NextResponse.json('
-        { error: "Too: many registration attempts. Please try again later." },
-       { status: 429 }
+      return NextResponse.json(
+        { error: "Too many registration attempts. Please try again later." },
+        { status: 429 }
       );
     }
     
@@ -43,19 +43,19 @@ export async function POST(req: NextRequest) {
     if (existingUser) {
       return NextResponse.json(
         { error: "User with this email already exists" },
-       { status: 400 }
+        { status: 400 }
       );
     }
     
     // Validate password strength
     const passwordValidation = validatePasswordStrength(validated.password);
     if (!passwordValidation.valid) {
-      return NextResponse.json('
+      return NextResponse.json(
         { 
           error: "Password is too weak",
           feedback: passwordValidation.feedback,
         },
-       { status: 400 }
+        { status: 400 }
       );
     }
     
@@ -96,3 +96,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
