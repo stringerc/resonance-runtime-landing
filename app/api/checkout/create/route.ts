@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { createResonanceCheckoutSession, createSyncscriptCheckoutSession } from "@/lib/stripe/checkout";
+import { stripe } from "@/lib/stripe/config";
 import { z } from "zod";
 
 const checkoutSchema = z.object({
