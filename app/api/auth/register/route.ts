@@ -165,6 +165,23 @@ export async function POST(req: NextRequest) {
     }
     
     console.error("Registration error:", error);
+    
+    // Enhanced error logging for debugging
+    const errorMessage = error?.message || "Unknown error";
+    const errorStack = error?.stack || "";
+    
+    // In development, return more details
+    if (process.env.NODE_ENV === "development") {
+      return NextResponse.json(
+        { 
+          error: "Internal server error",
+          message: errorMessage,
+          stack: errorStack.split("\n").slice(0, 5).join("\n"),
+        },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
