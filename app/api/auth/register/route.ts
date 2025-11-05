@@ -15,6 +15,7 @@ const registerSchema = z.object({
 
 /**
  * Diagnostic GET endpoint - helps debug registration issues
+ * Updated: Database connection string refreshed
  */
 export async function GET(req: NextRequest) {
   const diagnostics: any = {
