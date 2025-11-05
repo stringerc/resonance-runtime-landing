@@ -2,44 +2,14 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  // Skip middleware for API routes entirely
+  // Skip middleware for API routes entirely - just pass through
   if (request.nextUrl.pathname.startsWith('/api')) {
     return NextResponse.next();
   }
 
-  try {
-    const response = NextResponse.next();
-
-    // Only set security headers if we can
-    try {
-      response.headers.set("X-DNS-Prefetch-Control", "on");
-      response.headers.set(
-        "Strict-Transport-Security",
-        "max-age=63072000; includeSubDomains; preload"
-      );
-      response.headers.set("X-Frame-Options", "DENY");
-      response.headers.set("X-Content-Type-Options", "nosniff");
-      response.headers.set("X-XSS-Protection", "1; mode=block");
-      response.headers.set(
-        "Referrer-Policy",
-        "strict-origin-when-cross-origin"
-      );
-      response.headers.set(
-        "Permissions-Policy",
-        "camera=(), microphone=(), geolocation=()"
-      );
-    } catch (headerError) {
-      // If setting headers fails, continue without them
-      console.error("Error setting security headers:", headerError);
-    }
-
-    return response;
-  } catch (error) {
-    // If middleware fails completely, log and return a basic response
-    console.error("Middleware error:", error);
-    const response = NextResponse.next();
-    return response;
-  }
+  // For all other routes, just pass through without any modifications
+  // This is a minimal middleware to avoid any potential errors
+  return NextResponse.next();
 }
 
 export const config = {
