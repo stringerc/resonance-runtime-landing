@@ -15,32 +15,32 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   name          String?
-  passwordHash  String    // bcrypt hash
+  passwordHash  String // bcrypt hash
   image         String?
-  
+
   // MFA
-  mfaEnabled    Boolean   @default(false)
-  mfaSecret     String?   // TOTP secret (encrypted)
-  backupCodes   BackupCode[]
-  
+  mfaEnabled  Boolean      @default(false)
+  mfaSecret   String? // TOTP secret (encrypted)
+  backupCodes BackupCode[]
+
   // Sessions
   sessions      Session[]
   refreshTokens RefreshToken[]
-  
+
   // Licenses
-  licenses      License[]
-  
+  licenses License[]
+
   // Payments
-  payments      Payment[]
-  
+  payments Payment[]
+
   // Metrics (for dashboard)
-  metrics       UserMetric[]
-  
+  metrics UserMetric[]
+
   // Timestamps
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime?
-  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
   @@index([email])
   @@index([deletedAt])
 }
@@ -52,7 +52,7 @@ model Session {
   userId       String
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expires      DateTime
-  
+
   @@index([userId])
   @@index([sessionToken])
 }
@@ -87,15 +87,15 @@ model VerificationToken {
 
 // Refresh Token (for JWT rotation)
 model RefreshToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
+  id        String    @id @default(uuid())
+  token     String    @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jti       String   @unique // JWT ID for revocation
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jti       String    @unique // JWT ID for revocation
   expiresAt DateTime
   revokedAt DateTime?
-  createdAt DateTime @default(now())
-  
+  createdAt DateTime  @default(now())
+
   @@index([userId])
   @@index([jti])
   @@index([token])
@@ -103,14 +103,14 @@ model RefreshToken {
 
 // MFA Backup Codes
 model BackupCode {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  codeHash  String   // bcrypt hash of backup code
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String // bcrypt hash of backup code
   used      Boolean   @default(false)
   usedAt    DateTime?
-  createdAt DateTime @default(now())
-  
+  createdAt DateTime  @default(now())
+
   @@index([userId])
 }
 
@@ -151,39 +151,39 @@ enum LicenseStatus {
 
 // License/Subscription
 model License {
-  id                String        @id @default(uuid())
-  userId            String
-  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // Stripe
-  stripeCustomerId  String?       @unique
-  stripeSubscriptionId String?     @unique
-  stripePriceId     String?        // Stripe Price ID
-  stripeProductId   String?        // Stripe Product ID
-  
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+  stripePriceId        String? // Stripe Price ID
+  stripeProductId      String? // Stripe Product ID
+
   // Product & License Info
-  productType       ProductType   @default(RESONANCE)
-  resonanceType     ResonanceLicenseType?
-  syncscriptType    SyncscriptLicenseType?
+  productType    ProductType            @default(RESONANCE)
+  resonanceType  ResonanceLicenseType?
+  syncscriptType SyncscriptLicenseType?
   // Legacy field for backward compatibility
-  type              LicenseType?
-  status            LicenseStatus @default(TRIAL)
-  
+  type           LicenseType?
+  status         LicenseStatus          @default(TRIAL)
+
   // Dates
   currentPeriodStart DateTime?
   currentPeriodEnd   DateTime?
-  trialEndsAt        DateTime?     // Trial period end
+  trialEndsAt        DateTime? // Trial period end
   cancelledAt        DateTime?
-  
+
   // Metadata
-  metadata          Json?         // Store additional license data
-  
+  metadata Json? // Store additional license data
+
   // Relations
-  payments          Payment[]
-  
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  
+  payments Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([userId])
   @@index([stripeCustomerId])
   @@index([stripeSubscriptionId])
@@ -192,30 +192,30 @@ model License {
 
 // Payment/Transaction History
 model Payment {
-  id                String   @id @default(uuid())
-  userId            String
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  licenseId         String?
-  license           License? @relation(fields: [licenseId], references: [id])
-  
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  licenseId String?
+  license   License? @relation(fields: [licenseId], references: [id])
+
   // Stripe
   stripePaymentIntentId String? @unique
-  stripeInvoiceId  String?  @unique
-  stripeChargeId   String?
-  
+  stripeInvoiceId       String? @unique
+  stripeChargeId        String?
+
   // Amount
-  amount           Int      // Amount in cents
-  currency         String   @default("usd")
-  
+  amount   Int // Amount in cents
+  currency String @default("usd")
+
   // Status
-  status           String   // succeeded, failed, pending, refunded
-  
+  status String // succeeded, failed, pending, refunded
+
   // Metadata
-  metadata         Json?
-  
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([userId])
   @@index([stripePaymentIntentId])
   @@index([stripeInvoiceId])
@@ -223,15 +223,15 @@ model Payment {
 
 // Webhook Events (for idempotency)
 model WebhookEvent {
-  id          String   @id @default(uuid())
-  eventId     String   @unique // Stripe event ID
-  type        String   // Event type
-  processed   Boolean  @default(false)
-  processedAt DateTime?
+  id           String    @id @default(uuid())
+  eventId      String    @unique // Stripe event ID
+  type         String // Event type
+  processed    Boolean   @default(false)
+  processedAt  DateTime?
   errorMessage String?
-  payload     Json?    // Store full event payload for debugging
-  createdAt   DateTime @default(now())
-  
+  payload      Json? // Store full event payload for debugging
+  createdAt    DateTime  @default(now())
+
   @@index([eventId])
   @@index([type])
   @@index([processed])
@@ -239,15 +239,14 @@ model WebhookEvent {
 
 // User Metrics (for dashboard)
 model UserMetric {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // Metrics data (can be extended)
-  data      Json     // Flexible JSON structure
+  data      Json // Flexible JSON structure
   timestamp DateTime @default(now())
-  
+
   @@index([userId])
   @@index([timestamp])
 }
-
