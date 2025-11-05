@@ -2,51 +2,43 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  try {
-    // Skip middleware for API routes entirely
-    if (request.nextUrl.pathname.startsWith('/api')) {
-      return NextResponse.next();
-    }
+  // Skip middleware for API routes entirely
+  if (request.nextUrl.pathname.startsWith('/api')) {
+    return NextResponse.next();
+  }
 
+  try {
     const response = NextResponse.next();
 
-    // Security headers (OWASP recommended)
-    response.headers.set("X-DNS-Prefetch-Control", "on");
-    response.headers.set(
-      "Strict-Transport-Security",
-      "max-age=63072000; includeSubDomains; preload"
-    );
-    response.headers.set("X-Frame-Options", "DENY");
-    response.headers.set("X-Content-Type-Options", "nosniff");
-    response.headers.set("X-XSS-Protection", "1; mode=block");
-    response.headers.set(
-      "Referrer-Policy",
-      "strict-origin-when-cross-origin"
-    );
-    response.headers.set(
-      "Permissions-Policy",
-      "camera=(), microphone=(), geolocation=()"
-    );
-    
-    // CSP: Allow Next.js development features and external resources
-    const isDev = process.env.NODE_ENV === "development";
-    const csp = [
-      "default-src 'self'",
-      `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://js.stripe.com`,
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: https:",
-      "font-src 'self' data: https://fonts.gstatic.com",
-      "connect-src 'self' https://api.stripe.com",
-      "frame-src https://js.stripe.com https://hooks.stripe.com",
-    ].join("; ");
-
-    response.headers.set("Content-Security-Policy", csp);
+    // Only set security headers if we can
+    try {
+      response.headers.set("X-DNS-Prefetch-Control", "on");
+      response.headers.set(
+        "Strict-Transport-Security",
+        "max-age=63072000; includeSubDomains; preload"
+      );
+      response.headers.set("X-Frame-Options", "DENY");
+      response.headers.set("X-Content-Type-Options", "nosniff");
+      response.headers.set("X-XSS-Protection", "1; mode=block");
+      response.headers.set(
+        "Referrer-Policy",
+        "strict-origin-when-cross-origin"
+      );
+      response.headers.set(
+        "Permissions-Policy",
+        "camera=(), microphone=(), geolocation=()"
+      );
+    } catch (headerError) {
+      // If setting headers fails, continue without them
+      console.error("Error setting security headers:", headerError);
+    }
 
     return response;
   } catch (error) {
-    // If middleware fails, log error and continue without security headers
+    // If middleware fails completely, log and return a basic response
     console.error("Middleware error:", error);
-    return NextResponse.next();
+    const response = NextResponse.next();
+    return response;
   }
 }
 
