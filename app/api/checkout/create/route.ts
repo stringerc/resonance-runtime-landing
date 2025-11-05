@@ -68,8 +68,27 @@ export async function POST(req: NextRequest) {
     }
     
     console.error("Checkout creation error:", error);
+    
+    // Enhanced error logging
+    const errorMessage = error?.message || "Unknown error";
+    const errorName = error?.name || "Error";
+    
+    console.error("Checkout error details:", {
+      name: errorName,
+      message: errorMessage,
+      error: error,
+    });
+    
+    // Return detailed error for debugging
     return NextResponse.json(
-      { error: error.message || "Failed to create checkout session" },
+      { 
+        error: "Failed to create checkout session",
+        message: errorMessage,
+        name: errorName,
+        ...(process.env.NODE_ENV === "development" && {
+          stack: error?.stack?.split("\n").slice(0, 5).join("\n"),
+        }),
+      },
       { status: 500 }
     );
   }
