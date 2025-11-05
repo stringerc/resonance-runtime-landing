@@ -7,6 +7,8 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // Connection string includes ?pgbouncer=true to disable prepared statements
+  // This allows Prisma to work with connection poolers like Supavisor
 }
 
 // User Account
