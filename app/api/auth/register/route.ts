@@ -148,11 +148,13 @@ export async function POST(req: NextRequest) {
     const passwordHash = await hashPassword(validated.password);
     
     // Create user
+    const now = new Date();
     const user = await prisma.user.create({
       data: {
         email: validated.email,
         passwordHash,
         name: validated.name || null,
+        updatedAt: now, // Explicitly set updatedAt for creation
       },
       select: {
         id: true,
@@ -179,21 +181,27 @@ export async function POST(req: NextRequest) {
     // Enhanced error logging for debugging
     const errorMessage = error?.message || "Unknown error";
     const errorStack = error?.stack || "";
+    const errorName = error?.name || "Error";
     
-    // In development, return more details
-    if (process.env.NODE_ENV === "development") {
-      return NextResponse.json(
-        { 
-          error: "Internal server error",
-          message: errorMessage,
-          stack: errorStack.split("\n").slice(0, 5).join("\n"),
-        },
-        { status: 500 }
-      );
-    }
+    // Log full error details
+    console.error("Registration error details:", {
+      name: errorName,
+      message: errorMessage,
+      stack: errorStack,
+      error: error,
+    });
     
+    // Return detailed error for debugging (temporarily in production)
     return NextResponse.json(
-      { error: "Internal server error" },
+      { 
+        error: "Internal server error",
+        message: errorMessage,
+        name: errorName,
+        // Only include stack in development
+        ...(process.env.NODE_ENV === "development" && {
+          stack: errorStack.split("\n").slice(0, 10).join("\n"),
+        }),
+      },
       { status: 500 }
     );
   }
