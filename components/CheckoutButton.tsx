@@ -32,10 +32,19 @@ export function ResonanceCheckoutButton({ licenseType }: ResonanceCheckoutButton
 
       const data = await response.json();
 
+      if (!response.ok) {
+        // Show detailed error message
+        const errorMsg = data.message || data.error || "Failed to create checkout session";
+        alert(`Error: ${errorMsg}`);
+        console.error("Checkout API error:", data);
+        setLoading(false);
+        return;
+      }
+
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert("Failed to create checkout session");
+        alert("Failed to create checkout session: No URL returned");
         setLoading(false);
       }
     } catch (error) {
@@ -73,10 +82,19 @@ export function SyncscriptCheckoutButton({ licenseType }: SyncscriptCheckoutButt
 
       const data = await response.json();
 
+      if (!response.ok) {
+        // Show detailed error message
+        const errorMsg = data.message || data.error || "Failed to create checkout session";
+        alert(`Error: ${errorMsg}`);
+        console.error("Checkout API error:", data);
+        setLoading(false);
+        return;
+      }
+
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert("Failed to create checkout session");
+        alert("Failed to create checkout session: No URL returned");
         setLoading(false);
       }
     } catch (error) {

@@ -21,8 +21,19 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "Unauthorized", message: "Please sign in to continue" },
         { status: 401 }
+      );
+    }
+    
+    // Check if Stripe is configured
+    if (!stripe) {
+      return NextResponse.json(
+        { 
+          error: "Stripe not configured", 
+          message: "Payment processing is not available. Please contact support." 
+        },
+        { status: 500 }
       );
     }
     
