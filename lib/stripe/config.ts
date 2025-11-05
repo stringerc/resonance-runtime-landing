@@ -32,9 +32,9 @@ export type SyncscriptLicenseType = "free" | "pro" | "team" | "enterprise";
  */
 export function getResonancePriceId(licenseType: ResonanceLicenseType): string {
   const priceIds: Record<string, string> = {
-    starter: process.env.STRIPE_RESONANCE_STARTER || "",
-    pro: process.env.STRIPE_RESONANCE_PRO || "",
-    enterprise: process.env.STRIPE_RESONANCE_ENTERPRISE || "",
+    starter: (process.env.STRIPE_RESONANCE_STARTER || "").trim(),
+    pro: (process.env.STRIPE_RESONANCE_PRO || "").trim(),
+    enterprise: (process.env.STRIPE_RESONANCE_ENTERPRISE || "").trim(),
   };
   
   const priceId = priceIds[licenseType];
@@ -55,9 +55,9 @@ export function getSyncscriptPriceId(licenseType: SyncscriptLicenseType): string
   }
   
   const priceIds: Record<string, string> = {
-    pro: process.env.STRIPE_SYNCSCRIPT_PRO || "",
-    team: process.env.STRIPE_SYNCSCRIPT_TEAM || "",
-    enterprise: process.env.STRIPE_SYNCSCRIPT_ENTERPRISE || "",
+    pro: (process.env.STRIPE_SYNCSCRIPT_PRO || "").trim(),
+    team: (process.env.STRIPE_SYNCSCRIPT_TEAM || "").trim(),
+    enterprise: (process.env.STRIPE_SYNCSCRIPT_ENTERPRISE || "").trim(),
   };
   
   const priceId = priceIds[licenseType];
