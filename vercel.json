@@ -1,9 +1,4 @@
 {
   "buildCommand": "prisma generate && next build",
-  "framework": "nextjs",
-  "functions": {
-    "app/api/**/*.ts": {
-      "runtime": "@vercel/node"
-    }
-  }
+  "framework": "nextjs"
 }
