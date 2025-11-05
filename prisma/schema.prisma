@@ -1,4 +1,5 @@
 // Prisma Schema for Resonance Calculus Platform
+// Updated to ensure fresh Prisma Client generation
 generator client {
   provider = "prisma-client-js"
 }
