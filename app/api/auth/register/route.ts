@@ -96,14 +96,24 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // Rate limiting
-    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
-    const { success } = await registrationRatelimit.limit(ip);
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || 
+               req.headers.get("x-real-ip") || 
+               req.headers.get("remote-addr") ||
+               "unknown";
     
-    if (!success) {
-      return NextResponse.json(
-        { error: "Too many registration attempts. Please try again later." },
-        { status: 429 }
-      );
+    // Rate limiting might fail if Redis is not configured, but that's okay
+    try {
+      const { success } = await registrationRatelimit.limit(ip);
+      
+      if (!success) {
+        return NextResponse.json(
+          { error: "Too many registration attempts. Please try again later." },
+          { status: 429 }
+        );
+      }
+    } catch (rateLimitError) {
+      // If rate limiting fails (e.g., Redis not configured), log but continue
+      console.warn("Rate limiting error (continuing anyway):", rateLimitError);
     }
     
     // Parse and validate input
