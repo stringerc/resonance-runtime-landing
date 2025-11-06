@@ -105,11 +105,30 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
  * Activate license when payment succeeds
  */
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  const userId = session.metadata?.userId;
-  const licenseType = session.metadata?.licenseType as string;
+  // Try to get metadata from session first
+  let userId = session.metadata?.userId;
+  let licenseType = session.metadata?.licenseType as string;
+  
+  // If not in session metadata, try to get from subscription metadata
+  if (!userId || !licenseType) {
+    const subscriptionId = typeof session.subscription === "string"
+      ? session.subscription
+      : session.subscription?.id;
+    
+    if (subscriptionId) {
+      try {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        userId = subscription.metadata?.userId || userId;
+        licenseType = subscription.metadata?.licenseType || licenseType;
+      } catch (error) {
+        console.error("Error fetching subscription metadata:", error);
+      }
+    }
+  }
   
   if (!userId || !licenseType) {
-    console.error("Missing userId or licenseType in checkout session metadata");
+    console.error("Missing userId or licenseType in checkout session metadata. Session ID:", session.id);
+    console.error("Session metadata:", session.metadata);
     return;
   }
   
@@ -178,7 +197,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
 /**
  * Handle invoice.payment_succeeded
- * Renew license subscription
+ * Create or renew license subscription
+ * This is a fallback if checkout.session.completed didn't create the license
  */
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
   const customerId = typeof invoice.customer === "string"
@@ -202,12 +222,56 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
   // Fetch subscription
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   
-  // Update license
-  const license = await prisma.license.findFirst({
+  // Extract metadata from invoice line items or subscription metadata
+  // Metadata is often in the first line item's metadata
+  let userId: string | undefined;
+  let licenseType: string | undefined;
+  
+  // Try subscription metadata first
+  if (subscription.metadata?.userId && subscription.metadata?.licenseType) {
+    userId = subscription.metadata.userId;
+    licenseType = subscription.metadata.licenseType;
+  }
+  
+  // Try invoice line item metadata (this is where it often is)
+  if ((!userId || !licenseType) && invoice.lines?.data && invoice.lines.data.length > 0) {
+    const firstLineItem = invoice.lines.data[0];
+    if (firstLineItem.metadata?.userId && firstLineItem.metadata?.licenseType) {
+      userId = firstLineItem.metadata.userId;
+      licenseType = firstLineItem.metadata.licenseType;
+    }
+  }
+  
+  // Try invoice subscription_details metadata
+  if ((!userId || !licenseType) && invoice.subscription_details?.metadata) {
+    userId = invoice.subscription_details.metadata.userId;
+    licenseType = invoice.subscription_details.metadata.licenseType;
+  }
+  
+  // Check if license exists
+  let license = await prisma.license.findFirst({
     where: { stripeCustomerId: customerId },
   });
   
-  if (license) {
+  // If no license exists and we have metadata, create one
+  if (!license && userId && licenseType) {
+    console.log(`Creating license from invoice.payment_succeeded for user ${userId}`);
+    license = await prisma.license.create({
+      data: {
+        userId,
+        stripeCustomerId: customerId,
+        stripeSubscriptionId: subscriptionId,
+        stripePriceId: subscription.items.data[0]?.price.id,
+        stripeProductId: subscription.items.data[0]?.price.product as string,
+        type: licenseType.toUpperCase() as any,
+        status: "ACTIVE",
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      },
+    });
+    console.log(`License created for user ${userId} from invoice webhook`);
+  } else if (license) {
+    // Update existing license
     await prisma.license.update({
       where: { id: license.id },
       data: {
@@ -216,22 +280,32 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       },
     });
+  } else if (!userId || !licenseType) {
+    console.error("No license found and missing metadata in invoice. Cannot create license.");
+    console.error("Invoice ID:", invoice.id);
+    console.error("Subscription metadata:", subscription.metadata);
+    if (invoice.lines?.data?.[0]?.metadata) {
+      console.error("Line item metadata:", invoice.lines.data[0].metadata);
+    }
+    return;
   }
   
   // Record payment
-  await prisma.payment.create({
-    data: {
-      userId: license?.userId || "",
-      licenseId: license?.id,
-      stripePaymentIntentId: typeof invoice.payment_intent === "string"
-        ? invoice.payment_intent
-        : invoice.payment_intent?.id || undefined,
-      stripeInvoiceId: invoice.id,
-      amount: invoice.amount_paid,
-      currency: invoice.currency,
-      status: "succeeded",
-    },
-  });
+  if (license) {
+    await prisma.payment.create({
+      data: {
+        userId: license.userId,
+        licenseId: license.id,
+        stripePaymentIntentId: typeof invoice.payment_intent === "string"
+          ? invoice.payment_intent
+          : invoice.payment_intent?.id || undefined,
+        stripeInvoiceId: invoice.id,
+        amount: invoice.amount_paid,
+        currency: invoice.currency,
+        status: "succeeded",
+      },
+    });
+  }
 }
 
 /**
