@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface Metrics {
   R: number;
@@ -160,10 +161,43 @@ export default function CanaryDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* Navigation Bar */}
+      <nav className="border-b border-gray-200 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <Link href="/" className="text-2xl font-bold text-primary-600">
+              Resonance Calculus
+            </Link>
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/dashboard"
+                className="px-4 py-2 text-gray-700 hover:text-gray-900 transition flex items-center gap-2"
+              >
+                ← Back to Dashboard
+              </Link>
+              <Link
+                href="/dashboard"
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+              >
+                Dashboard
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Canary Mode Monitoring</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-bold text-gray-900">Canary Mode Monitoring</h1>
+            <Link
+              href="/dashboard"
+              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+            >
+              ← Dashboard
+            </Link>
+          </div>
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <span>Elapsed: <strong>{elapsedHours.toFixed(1)} hours</strong> / 24 hours</span>
             <span className="text-primary-600">Mode: <strong className={getModeColor(modeLabel)}>{modeLabel.charAt(0).toUpperCase() + modeLabel.slice(1)}</strong></span>
@@ -226,9 +260,19 @@ export default function CanaryDashboard() {
             <div className="text-2xl font-bold text-gray-900">
               {metrics.p99Latency ? `${metrics.p99Latency}ms` : 'N/A'}
             </div>
-            {metrics.latencyImprovement && (
-              <div className="text-sm text-green-600 mt-1">
-                ↓ {metrics.latencyImprovement}% (1h)
+            {metrics.p99Latency ? (
+              metrics.latencyImprovement ? (
+                <div className="text-sm text-green-600 mt-1">
+                  ↓ {metrics.latencyImprovement}% (1h)
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500 mt-1">
+                  Monitoring...
+                </div>
+              )
+            ) : (
+              <div className="text-sm text-gray-500 mt-1">
+                {metrics.error ? 'Agent not accessible' : 'Waiting for data...'}
               </div>
             )}
           </div>
