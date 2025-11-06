@@ -6,9 +6,11 @@ import { ResonanceCheckoutButton } from "@/components/CheckoutButton";
 const pricingPlans = [
   {
     name: "Starter",
-    price: "$49",
+    price: "$29",
     period: "month",
+    originalPrice: "$49",
     description: "Perfect for small teams getting started",
+    badge: "Launch Pricing",
     features: [
       "Up to 5 projects",
       "Real-time monitoring",
@@ -22,9 +24,11 @@ const pricingPlans = [
   },
   {
     name: "Pro",
-    price: "$149",
+    price: "$99",
     period: "month",
+    originalPrice: "$149",
     description: "For growing businesses with advanced needs",
+    badge: "Launch Pricing",
     features: [
       "Unlimited projects",
       "Advanced analytics (EVT, network calculus)",
@@ -105,12 +109,20 @@ export default async function ResonancePricingPage() {
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-16">
+          <div className="inline-block bg-green-50 border border-green-200 rounded-lg px-4 py-2 mb-4">
+            <p className="text-sm text-green-800 font-semibold">
+              🎉 Launch Special: Early Adopter Pricing - Limited Time Offer
+            </p>
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Resonance Calculus Platform
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Enterprise-grade performance analytics powered by advanced network calculus,
             extreme value theory, and max-plus algebra
+          </p>
+          <p className="text-sm text-gray-500 mt-4 max-w-xl mx-auto">
+            Lock in our launch pricing today. Prices will increase to standard rates ($49/$149) after the first 100 customers or by March 31, 2025.
           </p>
         </div>
 
@@ -133,17 +145,37 @@ export default async function ResonancePricingPage() {
                 </div>
               )}
               
+              {plan.badge && (
+                <div className="absolute -top-4 right-4">
+                  <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                    {plan.badge}
+                  </span>
+                </div>
+              )}
+              
               <div className="text-center mb-8">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">
                   {plan.name}
                 </h3>
                 <div className="mb-4">
-                  <span className="text-4xl font-bold text-gray-900">
-                    {plan.price}
-                  </span>
-                  {plan.period && (
-                    <span className="text-gray-600">/{plan.period}</span>
+                  {plan.originalPrice && (
+                    <div className="mb-2">
+                      <span className="text-lg text-gray-400 line-through mr-2">
+                        {plan.originalPrice}
+                      </span>
+                      <span className="text-xs text-green-600 font-semibold">
+                        Save {parseInt(plan.originalPrice.replace('$', '')) - parseInt(plan.price.replace('$', ''))}/mo
+                      </span>
+                    </div>
                   )}
+                  <div>
+                    <span className="text-4xl font-bold text-gray-900">
+                      {plan.price}
+                    </span>
+                    {plan.period && (
+                      <span className="text-gray-600">/{plan.period}</span>
+                    )}
+                  </div>
                 </div>
                 <p className="text-gray-600">{plan.description}</p>
               </div>

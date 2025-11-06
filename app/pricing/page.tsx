@@ -96,11 +96,19 @@ export default async function PricingPage() {
       {/* Pricing Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div className="text-center mb-16">
+          <div className="inline-block bg-green-50 border border-green-200 rounded-lg px-4 py-2 mb-4">
+            <p className="text-sm text-green-800 font-semibold">
+              🎉 Launch Special: Early Adopter Pricing - Limited Time Offer
+            </p>
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Simple, Transparent Pricing
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-600 mb-2">
             Choose the plan that's right for you
+          </p>
+          <p className="text-sm text-gray-500 max-w-xl mx-auto">
+            Lock in our launch pricing today. Prices will increase to standard rates after the first 100 customers or by March 31, 2025.
           </p>
         </div>
 
