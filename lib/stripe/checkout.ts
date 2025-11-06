@@ -38,9 +38,6 @@ export async function createResonanceCheckoutSession(
     },
     success_url: successUrl,
     cancel_url: cancelUrl,
-    payment_intent_data: {
-      setup_future_usage: "off_session",
-    },
     billing_address_collection: "required",
     allow_promotion_codes: true,
   });
@@ -90,9 +87,6 @@ export async function createSyncscriptCheckoutSession(
     },
     success_url: successUrl,
     cancel_url: cancelUrl,
-    payment_intent_data: {
-      setup_future_usage: "off_session",
-    },
     billing_address_collection: "required",
     allow_promotion_codes: true,
   });
