@@ -162,7 +162,7 @@ export default function CanaryDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Navigation Bar */}
-      <nav className="border-b border-gray-200 bg-white">
+      <nav className="border-b border-gray-200 bg-white sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="text-2xl font-bold text-primary-600">
@@ -171,13 +171,13 @@ export default function CanaryDashboard() {
             <div className="flex items-center space-x-4">
               <Link
                 href="/dashboard"
-                className="px-4 py-2 text-gray-700 hover:text-gray-900 transition flex items-center gap-2"
+                className="px-4 py-2 text-gray-700 hover:text-gray-900 transition flex items-center gap-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 ← Back to Dashboard
               </Link>
               <Link
                 href="/dashboard"
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium"
               >
                 Dashboard
               </Link>
@@ -193,9 +193,9 @@ export default function CanaryDashboard() {
             <h1 className="text-3xl font-bold text-gray-900">Canary Mode Monitoring</h1>
             <Link
               href="/dashboard"
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              className="px-4 py-2 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition font-medium flex items-center gap-2"
             >
-              ← Dashboard
+              ← Back to Dashboard
             </Link>
           </div>
           <div className="flex items-center gap-4 text-sm text-gray-600">

@@ -125,7 +125,7 @@ export default async function DashboardPage() {
                       href="/dashboard/canary"
                       className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-medium"
                     >
-                      Open Dashboard
+                      View Monitoring
                     </Link>
                   </div>
                 </div>
