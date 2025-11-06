@@ -6,16 +6,17 @@ export const revalidate = 0;
 
 // Proxy to Prometheus/Agent metrics
 export async function GET() {
+  // Determine if we're in production (Vercel) or local development
+  const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
+  
+  // In production, agent URLs need to be publicly accessible
+  // For local development, use localhost
+  const agentHealthUrl = process.env.RESONANCE_AGENT_URL || 
+    (isProduction ? null : 'http://localhost:18080/health');
+  const agentMetricsUrl = process.env.RESONANCE_METRICS_URL || 
+    (isProduction ? null : 'http://localhost:19090/metrics');
+  
   try {
-    // Determine if we're in production (Vercel) or local development
-    const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
-    
-    // In production, agent URLs need to be publicly accessible
-    // For local development, use localhost
-    const agentHealthUrl = process.env.RESONANCE_AGENT_URL || 
-      (isProduction ? null : 'http://localhost:18080/health');
-    const agentMetricsUrl = process.env.RESONANCE_METRICS_URL || 
-      (isProduction ? null : 'http://localhost:19090/metrics');
     
     // If no agent URL configured in production, return mock data
     if (isProduction && !agentHealthUrl) {
