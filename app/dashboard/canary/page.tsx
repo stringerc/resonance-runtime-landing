@@ -29,6 +29,7 @@ export default function CanaryDashboard() {
   const [loading, setLoading] = useState(true);
   const [insights, setInsights] = useState<AIInsight | null>(null);
   const [elapsedHours, setElapsedHours] = useState(0);
+  const [history, setHistory] = useState<Array<{ time: number; R: number }>>([]);
 
   useEffect(() => {
     fetchMetrics();
@@ -54,6 +55,15 @@ export default function CanaryDashboard() {
       const response = await fetch('/api/metrics');
       const data = await response.json();
       setMetrics(data);
+      
+      // Add to history (keep last 50 points for graph)
+      if (data && data.R !== undefined) {
+        setHistory(prev => {
+          const newHistory = [...prev, { time: Date.now(), R: data.R }];
+          // Keep only last 50 points
+          return newHistory.slice(-50);
+        });
+      }
       
       // Generate AI insights
       if (data) {
@@ -172,15 +182,9 @@ export default function CanaryDashboard() {
             <div className="flex items-center space-x-4">
               <Link
                 href="/dashboard"
-                className="px-4 py-2 text-gray-700 hover:text-gray-900 transition flex items-center gap-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium flex items-center gap-2"
               >
-                ← Back to Dashboard
-              </Link>
-              <Link
-                href="/dashboard"
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium"
-              >
-                Dashboard
+                ← Dashboard
               </Link>
             </div>
           </div>
@@ -190,15 +194,7 @@ export default function CanaryDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">Canary Mode Monitoring</h1>
-            <Link
-              href="/dashboard"
-              className="px-4 py-2 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition font-medium flex items-center gap-2"
-            >
-              ← Back to Dashboard
-            </Link>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Canary Mode Monitoring</h1>
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <span>Elapsed: <strong>{elapsedHours.toFixed(1)} hours</strong> / 24 hours</span>
             <span className="text-primary-600">Mode: <strong className={getModeColor(modeLabel)}>{modeLabel.charAt(0).toUpperCase() + modeLabel.slice(1)}</strong></span>
