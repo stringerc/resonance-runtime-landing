@@ -10,8 +10,14 @@ interface Metrics {
   mode: string;
   modeValue: number;
   p99Latency?: number;
+  p50Latency?: number;
   latencyImprovement?: number;
   error?: string;
+  agentUrl?: string;
+  agentConnected?: boolean;
+  environment?: string;
+  mock?: boolean;
+  timestamp?: string;
 }
 
 interface AIInsight {
@@ -379,7 +385,7 @@ export default function CanaryDashboard() {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-sm font-semibold text-gray-700 mb-2">Latency P99</h3>
             <div className="text-2xl font-bold text-gray-900">
-              {metrics.p99Latency ? `${metrics.p99Latency}ms` : 'N/A'}
+              {metrics.p99Latency ? `${Math.round(metrics.p99Latency)}ms` : 'N/A'}
             </div>
             {metrics.p99Latency ? (
               metrics.latencyImprovement ? (
@@ -388,12 +394,12 @@ export default function CanaryDashboard() {
                 </div>
               ) : (
                 <div className="text-sm text-gray-500 mt-1">
-                  Monitoring...
+                  {metrics.p50Latency ? `P50: ${Math.round(metrics.p50Latency)}ms` : 'Monitoring...'}
                 </div>
               )
             ) : (
               <div className="text-sm text-gray-500 mt-1">
-                {metrics.error ? 'Agent not accessible' : 'Waiting for data...'}
+                {metrics.mock ? 'Mock data - no latency' : metrics.error ? 'Agent not accessible' : 'Waiting for data...'}
               </div>
             )}
           </div>
@@ -415,6 +421,77 @@ export default function CanaryDashboard() {
             </div>
             <div className="text-sm text-gray-600 mt-1">
               K(t) = {metrics.K.toFixed(3)}
+            </div>
+          </div>
+        </div>
+
+        {/* System Information */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4">System Information</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Agent Status</span>
+                <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                  metrics.agentConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {metrics.agentConnected ? '✅ Connected' : '❌ Disconnected'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Environment</span>
+                <span className="text-sm font-medium text-gray-900 capitalize">
+                  {metrics.environment || 'Unknown'}
+                </span>
+              </div>
+              {metrics.mock && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Data Source</span>
+                  <span className="px-2 py-1 rounded text-xs font-semibold bg-yellow-100 text-yellow-800">
+                    ⚠️ Mock Data
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Agent URL</span>
+                <span className="text-xs font-mono text-gray-700 truncate max-w-[200px]" title={metrics.agentUrl}>
+                  {metrics.agentUrl || 'Not configured'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Last Update</span>
+                <span className="text-xs text-gray-700">
+                  {metrics.timestamp ? new Date(metrics.timestamp).toLocaleTimeString() : 'Never'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Update Interval</span>
+                <span className="text-xs text-gray-700">5 seconds</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Data Points Collected</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {history.length}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Data Retention</span>
+                <span className="text-xs text-gray-700">
+                  {Math.round((history.length * 5) / 60)} minutes
+                </span>
+              </div>
+              {metrics.error && (
+                <div className="flex items-start justify-between">
+                  <span className="text-sm text-gray-600">Error</span>
+                  <span className="text-xs text-red-600 max-w-[200px] text-right">
+                    {metrics.error}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

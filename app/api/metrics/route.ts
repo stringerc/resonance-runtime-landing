@@ -27,6 +27,9 @@ export async function GET() {
         modeValue: 2,
         timestamp: new Date().toISOString(),
         error: 'Agent URL not configured. Set RESONANCE_AGENT_URL in Vercel environment variables.',
+        agentUrl: 'Not configured',
+        agentConnected: false,
+        environment: 'production',
         mock: true,
       }, {
         status: 200,
@@ -90,6 +93,13 @@ export async function GET() {
         const KMatch = metricsText.match(/resonance_K\s+([\d.]+)/);
         const entropyMatch = metricsText.match(/resonance_spectral_entropy\s+([\d.]+)/);
         const modeMatch = metricsText.match(/resonance_mode\{value="(\w+)"\}\s+(\d+)/);
+        // Try to parse latency metrics (common Prometheus patterns)
+        const p99Match = metricsText.match(/resonance_p99_latency_ms\s+([\d.]+)/) || 
+                         metricsText.match(/latency_p99\s+([\d.]+)/) ||
+                         metricsText.match(/p99_latency_ms\s+([\d.]+)/);
+        const p50Match = metricsText.match(/resonance_p50_latency_ms\s+([\d.]+)/) ||
+                         metricsText.match(/latency_p50\s+([\d.]+)/) ||
+                         metricsText.match(/p50_latency_ms\s+([\d.]+)/);
 
         metricsData = {
           R: RMatch ? parseFloat(RMatch[1]) : null,
@@ -97,6 +107,8 @@ export async function GET() {
           spectralEntropy: entropyMatch ? parseFloat(entropyMatch[1]) : null,
           mode: modeMatch ? modeMatch[1] : null,
           modeValue: modeMatch ? parseInt(modeMatch[2]) : null,
+          p99Latency: p99Match ? parseFloat(p99Match[1]) : null,
+          p50Latency: p50Match ? parseFloat(p50Match[1]) : null,
         };
       }
     } catch (e) {
@@ -112,15 +124,18 @@ export async function GET() {
       spectralEntropy: metricsData?.spectralEntropy ?? parseFloat(resonance.entropy) ?? 0.5,
       mode: metricsData?.mode ?? resonance.mode ?? 'adaptive',
       modeValue: metricsData?.modeValue ?? (resonance.mode === 'adaptive' ? 2 : 1),
+      p99Latency: metricsData?.p99Latency ?? resonance.p99Latency ?? null,
+      p50Latency: metricsData?.p50Latency ?? resonance.p50Latency ?? null,
       timestamp: healthData.timestamp || new Date().toISOString(),
+      agentUrl: agentHealthUrl,
+      agentConnected: true,
+      environment: isProduction ? 'production' : 'development',
     };
 
-    // Calculate latency improvement (mock for now - replace with real data)
-    // In production, this would come from Prometheus queries
-    if (response.R >= 0.35 && response.R <= 0.65) {
-      // Simulate improvement when in optimal band
-      response.p99Latency = 230;
-      response.latencyImprovement = 12;
+    // Calculate latency improvement if we have latency data
+    if (response.p99Latency && response.p99Latency > 0) {
+      // This would ideally compare against baseline, for now show a placeholder
+      response.latencyImprovement = response.R >= 0.35 && response.R <= 0.65 ? 12 : null;
     }
 
     return NextResponse.json(response, {
@@ -142,6 +157,10 @@ export async function GET() {
       modeValue: 2,
       timestamp: new Date().toISOString(),
       error: 'Agent not accessible, showing mock data',
+      agentUrl: agentHealthUrl || 'Not configured',
+      agentConnected: false,
+      environment: isProduction ? 'production' : 'development',
+      mock: true,
     }, {
       status: 200, // Still return 200 so UI can show mock data
       headers: {
