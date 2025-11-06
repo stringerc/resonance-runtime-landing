@@ -205,48 +205,104 @@ export default function CanaryDashboard() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Global Resonance Overview</h2>
           <div className="relative h-64 bg-gray-50 rounded-lg p-4">
-            {/* Target Band Visualization */}
-            <div className="absolute inset-0 p-4 flex flex-col justify-between">
-              <div className="relative h-full">
-                {/* Target band area */}
-                <div
-                  className="absolute w-full bg-green-100 border-2 border-green-300"
-                  style={{
-                    top: `${(1 - 0.65) * 100}%`,
-                    height: `${(0.65 - 0.35) * 100}%`,
-                  }}
+            <svg className="w-full h-full" viewBox="0 0 800 240" preserveAspectRatio="none">
+              {/* Target band area */}
+              <rect
+                x="0"
+                y={(1 - 0.65) * 240}
+                width="800"
+                height={(0.65 - 0.35) * 240}
+                fill="#dcfce7"
+                stroke="#86efac"
+                strokeWidth="2"
+                opacity="0.6"
+              />
+              <text
+                x="400"
+                y={(1 - 0.65) * 240 - 5}
+                textAnchor="middle"
+                className="text-xs font-semibold fill-green-700"
+                fontSize="12"
+              >
+                TARGET BAND
+              </text>
+              
+              {/* Grid lines */}
+              {[0, 0.25, 0.5, 0.75, 1.0].map((val) => (
+                <line
+                  key={val}
+                  x1="0"
+                  y1={(1 - val) * 240}
+                  x2="800"
+                  y2={(1 - val) * 240}
+                  stroke="#e5e7eb"
+                  strokeWidth="1"
+                  strokeDasharray="4,4"
+                />
+              ))}
+              
+              {/* R(t) line graph */}
+              {history.length > 1 && (
+                <polyline
+                  points={history.map((point, idx) => {
+                    const x = (idx / (history.length - 1)) * 800;
+                    const y = (1 - point.R) * 240;
+                    return `${x},${y}`;
+                  }).join(' ')}
+                  fill="none"
+                  stroke="#3b82f6"
+                  strokeWidth="2"
+                />
+              )}
+              
+              {/* Current value indicator */}
+              {metrics && (
+                <>
+                  <circle
+                    cx="800"
+                    cy={(1 - metrics.R) * 240}
+                    r="6"
+                    fill="#3b82f6"
+                    stroke="white"
+                    strokeWidth="2"
+                  />
+                  <text
+                    x="790"
+                    y={(1 - metrics.R) * 240 - 10}
+                    textAnchor="end"
+                    className="text-xs font-semibold fill-blue-600"
+                    fontSize="12"
+                  >
+                    R(t) = {metrics.R.toFixed(3)}
+                  </text>
+                </>
+              )}
+              
+              {/* Y-axis labels */}
+              {[0, 0.25, 0.5, 0.75, 1.0].map((val) => (
+                <text
+                  key={val}
+                  x="5"
+                  y={(1 - val) * 240 + 4}
+                  className="text-xs fill-gray-600"
+                  fontSize="12"
                 >
-                  <div className="absolute top-0 left-0 right-0 text-center text-xs text-green-700 font-semibold py-1">
-                    TARGET BAND
-                  </div>
-                </div>
-                
-                {/* Current R(t) value */}
-                <div
-                  className="absolute left-0 right-0 flex items-center"
-                  style={{ top: `${(1 - metrics.R) * 100}%` }}
-                >
-                  <div className="w-full flex items-center">
-                    <div className={`w-3 h-3 rounded-full ${bandStatus.color.replace('text-', 'bg-')} mr-2`}></div>
-                    <span className="text-sm font-semibold">
-                      R(t) = {metrics.R.toFixed(3)} ({bandStatus.status})
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Y-axis labels */}
-            <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-gray-600 pl-2">
-              <span>1.00</span>
-              <span>0.75</span>
-              <span>0.50</span>
-              <span>0.25</span>
-              <span>0.00</span>
-            </div>
+                  {val.toFixed(2)}
+                </text>
+              ))}
+            </svg>
           </div>
-          <div className="mt-4 text-sm text-gray-600">
-            <p>Target Band: [0.35, 0.65] | Current: {metrics.R.toFixed(3)} | Status: <span className={bandStatus.color}>{bandStatus.status.toUpperCase()}</span></p>
+          <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
+            <div>
+              <span>Target Band: [0.35, 0.65]</span>
+              <span className="mx-2">|</span>
+              <span>Current: {metrics.R.toFixed(3)}</span>
+              <span className="mx-2">|</span>
+              <span>Status: <span className={bandStatus.color}>{bandStatus.status.toUpperCase()}</span></span>
+            </div>
+            <div className="text-xs text-gray-500">
+              {history.length} data points
+            </div>
           </div>
         </div>
 
