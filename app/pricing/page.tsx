@@ -8,7 +8,9 @@ const pricingPlans = [
     name: "Basic",
     price: "$29",
     period: "month",
+    originalPrice: "$49",
     description: "Perfect for small teams",
+    badge: "Launch Pricing",
     features: [
       "Up to 10 projects",
       "Real-time monitoring",
@@ -22,7 +24,9 @@ const pricingPlans = [
     name: "Pro",
     price: "$99",
     period: "month",
+    originalPrice: "$149",
     description: "For growing businesses",
+    badge: "Launch Pricing",
     features: [
       "Unlimited projects",
       "Advanced analytics",
@@ -130,17 +134,37 @@ export default async function PricingPage() {
                 </div>
               )}
               
+              {plan.badge && (
+                <div className="absolute -top-4 right-4">
+                  <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                    {plan.badge}
+                  </span>
+                </div>
+              )}
+              
               <div className="text-center mb-8">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">
                   {plan.name}
                 </h3>
                 <div className="mb-4">
-                  <span className="text-4xl font-bold text-gray-900">
-                    {plan.price}
-                  </span>
-                  {plan.period && (
-                    <span className="text-gray-600">/{plan.period}</span>
+                  {plan.originalPrice && (
+                    <div className="mb-2">
+                      <span className="text-lg text-gray-400 line-through mr-2">
+                        {plan.originalPrice}
+                      </span>
+                      <span className="text-xs text-green-600 font-semibold">
+                        Save {parseInt(plan.originalPrice.replace('$', '')) - parseInt(plan.price.replace('$', ''))}/mo
+                      </span>
+                    </div>
                   )}
+                  <div>
+                    <span className="text-4xl font-bold text-gray-900">
+                      {plan.price}
+                    </span>
+                    {plan.period && (
+                      <span className="text-gray-600">/{plan.period}</span>
+                    )}
+                  </div>
                 </div>
                 <p className="text-gray-600">{plan.description}</p>
               </div>
