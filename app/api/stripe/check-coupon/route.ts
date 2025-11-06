@@ -61,6 +61,10 @@ export async function GET(req: NextRequest) {
           first_time_transaction: promo.restrictions?.first_time_transaction,
           minimum_amount: promo.restrictions?.minimum_amount,
           minimum_amount_currency: promo.restrictions?.minimum_amount_currency,
+          applies_to: promo.restrictions?.applies_to,
+          // Check if there are product/price restrictions
+          has_product_restrictions: !!promo.restrictions?.applies_to?.products?.length,
+          has_price_restrictions: !!promo.restrictions?.applies_to?.products?.some((p: any) => p.prices?.length),
         },
       };
 
@@ -78,6 +82,24 @@ export async function GET(req: NextRequest) {
         promo.times_redeemed >= promo.max_redemptions
       ) {
         diagnostics.checks.promotionCode.maxRedemptionsReached = true;
+      }
+
+      // Additional validation checks
+      diagnostics.checks.validation = {
+        canBeUsed: promo.active && promo.coupon.valid,
+        isExpired: promo.expires_at ? promo.expires_at < Date.now() / 1000 : false,
+        maxRedemptionsReached: promo.max_redemptions ? promo.times_redeemed >= promo.max_redemptions : false,
+        hasFirstTimeRestriction: promo.restrictions?.first_time_transaction === true,
+        hasMinimumAmount: !!promo.restrictions?.minimum_amount,
+        hasProductRestrictions: !!promo.restrictions?.applies_to?.products?.length,
+      };
+
+      // Check if promotion code can be used with subscription mode
+      if (promo.restrictions?.applies_to?.products?.length) {
+        diagnostics.checks.validation.productRestrictions = promo.restrictions.applies_to.products.map((p: any) => ({
+          product: p.product,
+          prices: p.prices || [],
+        }));
       }
     } else {
       diagnostics.checks.promotionCode = {
