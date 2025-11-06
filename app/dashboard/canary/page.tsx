@@ -11,6 +11,7 @@ interface Metrics {
   modeValue: number;
   p99Latency?: number;
   latencyImprovement?: number;
+  error?: string;
 }
 
 interface AIInsight {
