@@ -101,6 +101,17 @@ export async function GET() {
         const p50Match = metricsText.match(/resonance_p50_latency_ms\s+([\d.]+)/) ||
                          metricsText.match(/latency_p50\s+([\d.]+)/) ||
                          metricsText.match(/p50_latency_ms\s+([\d.]+)/);
+        
+        // Parse Resonance Calculus metrics
+        const coherenceScoreMatch = metricsText.match(/resonance_coherence_score\s+([\d.]+)/);
+        const tailHealthScoreMatch = metricsText.match(/resonance_tail_health_score\s+([\d.]+)/);
+        const timingScoreMatch = metricsText.match(/resonance_timing_score\s+([\d.]+)/);
+        const lambdaResMatch = metricsText.match(/resonance_lambda_res\s+([\d.\-]+)/);
+        const gpdXiMatch = metricsText.match(/resonance_gpd_xi\s+([\d.\-]+)/);
+        const gpdSigmaMatch = metricsText.match(/resonance_gpd_sigma\s+([\d.]+)/);
+        const gpdThresholdMatch = metricsText.match(/resonance_gpd_threshold\s+([\d.]+)/);
+        const tailQ99Match = metricsText.match(/resonance_tail_q99\s+([\d.]+)/);
+        const tailQ99_9Match = metricsText.match(/resonance_tail_q99_9\s+([\d.]+)/);
 
         metricsData = {
           R: RMatch ? parseFloat(RMatch[1]) : null,
@@ -110,6 +121,20 @@ export async function GET() {
           modeValue: modeMatch ? parseInt(modeMatch[2]) : null,
           p99Latency: p99Match ? parseFloat(p99Match[1]) : null,
           p50Latency: p50Match ? parseFloat(p50Match[1]) : null,
+          // Resonance Calculus metrics (optional)
+          coherenceScore: coherenceScoreMatch ? parseFloat(coherenceScoreMatch[1]) : null,
+          tailHealthScore: tailHealthScoreMatch ? parseFloat(tailHealthScoreMatch[1]) : null,
+          timingScore: timingScoreMatch ? parseFloat(timingScoreMatch[1]) : null,
+          lambdaRes: lambdaResMatch ? parseFloat(lambdaResMatch[1]) : null,
+          gpd: (gpdXiMatch || gpdSigmaMatch || gpdThresholdMatch) ? {
+            xi: gpdXiMatch ? parseFloat(gpdXiMatch[1]) : null,
+            sigma: gpdSigmaMatch ? parseFloat(gpdSigmaMatch[1]) : null,
+            threshold: gpdThresholdMatch ? parseFloat(gpdThresholdMatch[1]) : null,
+          } : null,
+          tailQuantiles: (tailQ99Match || tailQ99_9Match) ? {
+            q99: tailQ99Match ? parseFloat(tailQ99Match[1]) : null,
+            q99_9: tailQ99_9Match ? parseFloat(tailQ99_9Match[1]) : null,
+          } : null,
         };
       }
     } catch (e) {
@@ -131,6 +156,13 @@ export async function GET() {
       agentUrl: agentHealthUrl,
       agentConnected: true,
       environment: isProduction ? 'production' : 'development',
+      // Resonance Calculus metrics (optional, for backward compatibility)
+      coherenceScore: metricsData?.coherenceScore ?? null,
+      tailHealthScore: metricsData?.tailHealthScore ?? null,
+      timingScore: metricsData?.timingScore ?? null,
+      lambdaRes: metricsData?.lambdaRes ?? null,
+      gpd: metricsData?.gpd ?? null,
+      tailQuantiles: metricsData?.tailQuantiles ?? null,
     };
 
     // Calculate latency improvement if we have latency data

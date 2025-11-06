@@ -18,6 +18,20 @@ interface Metrics {
   environment?: string;
   mock?: boolean;
   timestamp?: string;
+  // Resonance Calculus metrics (optional)
+  coherenceScore?: number | null;
+  tailHealthScore?: number | null;
+  timingScore?: number | null;
+  lambdaRes?: number | null;
+  gpd?: {
+    xi: number | null;
+    sigma: number | null;
+    threshold: number | null;
+  } | null;
+  tailQuantiles?: {
+    q99: number | null;
+    q99_9: number | null;
+  } | null;
 }
 
 interface AIInsight {
@@ -39,6 +53,7 @@ export default function CanaryDashboard() {
   const [elapsedHours, setElapsedHours] = useState(0);
   const [history, setHistory] = useState<Array<{ time: number; R: number }>>([]);
   const [timeInterval, setTimeInterval] = useState<TimeInterval>('realtime');
+  const [tailHealthExpanded, setTailHealthExpanded] = useState(false);
 
   useEffect(() => {
     fetchMetrics();
@@ -138,41 +153,96 @@ export default function CanaryDashboard() {
     const mode = modeLabels[m.modeValue] || 'unknown';
     const inBand = m.R >= 0.35 && m.R <= 0.65;
     const entropyOptimal = m.spectralEntropy >= 0.4 && m.spectralEntropy <= 0.6;
+    
+    // Resonance Calculus component analysis
+    const hasCalculus = m.coherenceScore !== null && m.coherenceScore !== undefined;
+    const coherenceGood = m.coherenceScore !== null && m.coherenceScore !== undefined && m.coherenceScore >= 0.5;
+    const tailGood = m.tailHealthScore !== null && m.tailHealthScore !== undefined && m.tailHealthScore >= 0.5;
+    const timingGood = m.timingScore !== null && m.timingScore !== undefined && m.timingScore >= 0.5;
 
     let mainInsight = '';
     let confidence = 95;
 
     if (mode === 'adaptive' && inBand && entropyOptimal) {
-      mainInsight = `System performance optimal. R(t) at ${m.R.toFixed(2)} within target band [0.35, 0.65]. Controller in adaptive mode managing traffic. ${m.latencyImprovement ? `Latency improved ${m.latencyImprovement}%` : 'Monitoring in progress'}.`;
+      if (hasCalculus) {
+        const components = [];
+        if (coherenceGood) components.push('coherence');
+        if (tailGood) components.push('tail health');
+        if (timingGood) components.push('timing');
+        const componentText = components.length > 0 
+          ? `Resonance Calculus shows strong ${components.join(', ')}. `
+          : 'Resonance Calculus components need attention. ';
+        mainInsight = `System performance optimal. R(t) at ${m.R.toFixed(2)} within target band [0.35, 0.65]. ${componentText}Controller in adaptive mode managing traffic. ${m.latencyImprovement ? `Latency improved ${m.latencyImprovement}%` : 'Monitoring in progress'}.`;
+      } else {
+        mainInsight = `System performance optimal. R(t) at ${m.R.toFixed(2)} within target band [0.35, 0.65]. Controller in adaptive mode managing traffic. ${m.latencyImprovement ? `Latency improved ${m.latencyImprovement}%` : 'Monitoring in progress'}.`;
+      }
       confidence = 95;
     } else if (mode === 'adaptive' && !inBand) {
-      mainInsight = `R(t) at ${m.R.toFixed(2)} outside target band. Controller adjusting coupling K(t) to ${m.K.toFixed(2)}. Monitor closely.`;
+      if (hasCalculus) {
+        const weakComponents = [];
+        if (!coherenceGood) weakComponents.push('coherence');
+        if (!tailGood) weakComponents.push('tail health');
+        if (!timingGood) weakComponents.push('timing');
+        const componentText = weakComponents.length > 0 
+          ? ` Resonance Calculus indicates weak ${weakComponents.join(', ')}.`
+          : '';
+        mainInsight = `R(t) at ${m.R.toFixed(2)} outside target band.${componentText} Controller adjusting coupling K(t) to ${m.K.toFixed(2)}. Monitor closely.`;
+      } else {
+        mainInsight = `R(t) at ${m.R.toFixed(2)} outside target band. Controller adjusting coupling K(t) to ${m.K.toFixed(2)}. Monitor closely.`;
+      }
       confidence = 85;
     } else {
       mainInsight = `System in ${mode} mode. Monitoring metrics and controller behavior.`;
       confidence = 80;
     }
 
+    const supporting: Array<{ title: string; value: string; status: 'good' | 'warning' | 'critical' }> = [
+      {
+        title: 'R(t) & Target Band',
+        value: `${m.R.toFixed(2)} (target: [0.35, 0.65])`,
+        status: inBand ? 'good' : 'warning'
+      },
+      {
+        title: 'Spectral Entropy',
+        value: `${m.spectralEntropy.toFixed(2)} ${entropyOptimal ? '✓ Balanced' : '⚠ Monitor'}`,
+        status: entropyOptimal ? 'good' : 'warning'
+      },
+      {
+        title: 'Controller Mode',
+        value: `${mode.charAt(0).toUpperCase() + mode.slice(1)} (K=${m.K.toFixed(2)})`,
+        status: mode === 'adaptive' ? 'good' : 'warning'
+      }
+    ];
+
+    // Add Resonance Calculus components if available
+    if (hasCalculus) {
+      if (m.coherenceScore !== null && m.coherenceScore !== undefined) {
+        supporting.push({
+          title: 'Coherence Score',
+          value: `${m.coherenceScore.toFixed(2)} ${coherenceGood ? '✓' : '⚠'}`,
+          status: coherenceGood ? 'good' : 'warning'
+        });
+      }
+      if (m.tailHealthScore !== null && m.tailHealthScore !== undefined) {
+        supporting.push({
+          title: 'Tail Health Score',
+          value: `${m.tailHealthScore.toFixed(2)} ${tailGood ? '✓' : '⚠'}`,
+          status: tailGood ? 'good' : 'warning'
+        });
+      }
+      if (m.timingScore !== null && m.timingScore !== undefined) {
+        supporting.push({
+          title: 'Timing Score',
+          value: `${m.timingScore.toFixed(2)} ${timingGood ? '✓' : '⚠'}`,
+          status: timingGood ? 'good' : 'warning'
+        });
+      }
+    }
+
     setInsights({
       main: mainInsight,
       confidence,
-      supporting: [
-        {
-          title: 'R(t) & Target Band',
-          value: `${m.R.toFixed(2)} (target: [0.35, 0.65])`,
-          status: inBand ? 'good' : 'warning'
-        },
-        {
-          title: 'Spectral Entropy',
-          value: `${m.spectralEntropy.toFixed(2)} ${entropyOptimal ? '✓ Balanced' : '⚠ Monitor'}`,
-          status: entropyOptimal ? 'good' : 'warning'
-        },
-        {
-          title: 'Controller Mode',
-          value: `${mode.charAt(0).toUpperCase() + mode.slice(1)} (K=${m.K.toFixed(2)})`,
-          status: mode === 'adaptive' ? 'good' : 'warning'
-        }
-      ]
+      supporting
     });
   };
 
@@ -232,6 +302,12 @@ export default function CanaryDashboard() {
             </Link>
             <div className="flex items-center space-x-4">
               <Link
+                href="/dashboard/resonance-calculus"
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
+              >
+                Resonance Calculus →
+              </Link>
+              <Link
                 href="/dashboard"
                 className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium flex items-center gap-2"
               >
@@ -274,7 +350,28 @@ export default function CanaryDashboard() {
           </div>
           <div className="relative h-64 bg-gray-50 rounded-lg p-4">
             <svg className="w-full h-full" viewBox="0 0 800 240" preserveAspectRatio="none">
-              {/* Target band area */}
+              {/* Resonance Band Zones */}
+              {/* Low zone (< 0.35) */}
+              <rect
+                x="0"
+                y={(1 - 0.35) * 240}
+                width="800"
+                height={0.35 * 240}
+                fill="#fef3c7"
+                stroke="#fbbf24"
+                strokeWidth="1"
+                opacity="0.4"
+              />
+              <text
+                x="10"
+                y={(1 - 0.2) * 240}
+                className="text-xs font-semibold fill-yellow-700"
+                fontSize="11"
+              >
+                LOW
+              </text>
+              
+              {/* Optimal zone (0.35 - 0.65) */}
               <rect
                 x="0"
                 y={(1 - 0.65) * 240}
@@ -287,12 +384,32 @@ export default function CanaryDashboard() {
               />
               <text
                 x="400"
-                y={(1 - 0.65) * 240 - 5}
+                y={(1 - 0.5) * 240}
                 textAnchor="middle"
                 className="text-xs font-semibold fill-green-700"
                 fontSize="12"
               >
-                TARGET BAND
+                OPTIMAL BAND [0.35, 0.65]
+              </text>
+              
+              {/* High zone (> 0.65) */}
+              <rect
+                x="0"
+                y="0"
+                width="800"
+                height={(1 - 0.65) * 240}
+                fill="#fed7aa"
+                stroke="#fb923c"
+                strokeWidth="1"
+                opacity="0.4"
+              />
+              <text
+                x="10"
+                y={(1 - 0.7) * 240}
+                className="text-xs font-semibold fill-orange-700"
+                fontSize="11"
+              >
+                HIGH
               </text>
               
               {/* Grid lines */}
@@ -380,6 +497,97 @@ export default function CanaryDashboard() {
           </div>
         </div>
 
+        {/* Resonance Components Panel */}
+        {(metrics.coherenceScore !== null && metrics.coherenceScore !== undefined) ||
+         (metrics.tailHealthScore !== null && metrics.tailHealthScore !== undefined) ||
+         (metrics.timingScore !== null && metrics.timingScore !== undefined) ||
+         (metrics.lambdaRes !== null && metrics.lambdaRes !== undefined) ? (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4">Resonance Components</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Coherence Score */}
+              {metrics.coherenceScore !== null && metrics.coherenceScore !== undefined && (
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                  <h3 className="text-sm font-semibold text-blue-900 mb-2">Coherence Score</h3>
+                  <div className="flex items-baseline gap-2">
+                    <div className="text-3xl font-bold text-blue-700">
+                      {(metrics.coherenceScore * 100).toFixed(0)}
+                    </div>
+                    <span className="text-sm text-blue-600">%</span>
+                  </div>
+                  <div className="mt-2 h-2 bg-blue-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-600 transition-all duration-300"
+                      style={{ width: `${metrics.coherenceScore * 100}%` }}
+                    />
+                  </div>
+                  <div className="text-xs text-blue-700 mt-1">
+                    {metrics.coherenceScore >= 0.5 ? '✓ Optimal' : '⚠ Low'}
+                  </div>
+                </div>
+              )}
+
+              {/* Tail Health Score */}
+              {metrics.tailHealthScore !== null && metrics.tailHealthScore !== undefined && (
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                  <h3 className="text-sm font-semibold text-green-900 mb-2">Tail Health Score</h3>
+                  <div className="flex items-baseline gap-2">
+                    <div className="text-3xl font-bold text-green-700">
+                      {(metrics.tailHealthScore * 100).toFixed(0)}
+                    </div>
+                    <span className="text-sm text-green-600">%</span>
+                  </div>
+                  <div className="mt-2 h-2 bg-green-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-green-600 transition-all duration-300"
+                      style={{ width: `${metrics.tailHealthScore * 100}%` }}
+                    />
+                  </div>
+                  <div className="text-xs text-green-700 mt-1">
+                    {metrics.tailHealthScore >= 0.5 ? '✓ Healthy' : '⚠ Risk'}
+                  </div>
+                </div>
+              )}
+
+              {/* Timing Score */}
+              {metrics.timingScore !== null && metrics.timingScore !== undefined && (
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                  <h3 className="text-sm font-semibold text-purple-900 mb-2">Timing Score</h3>
+                  <div className="flex items-baseline gap-2">
+                    <div className="text-3xl font-bold text-purple-700">
+                      {(metrics.timingScore * 100).toFixed(0)}
+                    </div>
+                    <span className="text-sm text-purple-600">%</span>
+                  </div>
+                  <div className="mt-2 h-2 bg-purple-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-purple-600 transition-all duration-300"
+                      style={{ width: `${metrics.timingScore * 100}%` }}
+                    />
+                  </div>
+                  <div className="text-xs text-purple-700 mt-1">
+                    {metrics.timingScore >= 0.5 ? '✓ Synchronized' : '⚠ Delayed'}
+                  </div>
+                </div>
+              )}
+
+              {/* Max-Plus Eigenvalue */}
+              {metrics.lambdaRes !== null && metrics.lambdaRes !== undefined && (
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+                  <h3 className="text-sm font-semibold text-orange-900 mb-2">Max-Plus λ_res</h3>
+                  <div className="text-2xl font-bold text-orange-700">
+                    {metrics.lambdaRes.toFixed(3)}
+                  </div>
+                  <div className="text-xs text-orange-600 mt-1">Cycle Time</div>
+                  <div className="text-xs text-orange-700 mt-1">
+                    {metrics.lambdaRes < 10 ? '✓ Fast' : metrics.lambdaRes < 50 ? '⚠ Moderate' : '⚠ Slow'}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
+
         {/* Supporting Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -424,6 +632,123 @@ export default function CanaryDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Tail Health Details (Expandable) */}
+        {metrics.tailHealthScore !== null && metrics.tailHealthScore !== undefined && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Tail Health Analysis</h2>
+              <button
+                onClick={() => setTailHealthExpanded(!tailHealthExpanded)}
+                className="px-4 py-2 text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition"
+              >
+                {tailHealthExpanded ? '▼ Hide Details' : '▶ Show Details'}
+              </button>
+            </div>
+            
+            {/* Summary */}
+            <div className="mb-4">
+              <div className="flex items-center gap-4">
+                <div>
+                  <div className="text-sm text-gray-600 mb-1">Tail Health Score</div>
+                  <div className="text-3xl font-bold text-gray-900">
+                    {(metrics.tailHealthScore * 100).toFixed(1)}%
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        metrics.tailHealthScore >= 0.7 ? 'bg-green-600' :
+                        metrics.tailHealthScore >= 0.5 ? 'bg-yellow-500' :
+                        'bg-red-600'
+                      }`}
+                      style={{ width: `${metrics.tailHealthScore * 100}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="text-sm">
+                  <span className={`font-semibold ${
+                    metrics.tailHealthScore >= 0.7 ? 'text-green-600' :
+                    metrics.tailHealthScore >= 0.5 ? 'text-yellow-600' :
+                    'text-red-600'
+                  }`}>
+                    {metrics.tailHealthScore >= 0.7 ? 'Excellent' :
+                     metrics.tailHealthScore >= 0.5 ? 'Good' :
+                     'Needs Attention'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Expandable Details */}
+            {tailHealthExpanded && (
+              <div className="border-t border-gray-200 pt-4 space-y-4">
+                {/* GPD Parameters */}
+                {metrics.gpd && (metrics.gpd.xi !== null || metrics.gpd.sigma !== null || metrics.gpd.threshold !== null) && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2">GPD Parameters</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {metrics.gpd.xi !== null && (
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="text-xs text-gray-600 mb-1">Shape Parameter (ξ)</div>
+                          <div className="text-lg font-bold text-gray-900">{metrics.gpd.xi.toFixed(4)}</div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {metrics.gpd.xi > 0 ? 'Heavy tail' : metrics.gpd.xi < 0 ? 'Light tail' : 'Exponential'}
+                          </div>
+                        </div>
+                      )}
+                      {metrics.gpd.sigma !== null && (
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="text-xs text-gray-600 mb-1">Scale Parameter (σ)</div>
+                          <div className="text-lg font-bold text-gray-900">{metrics.gpd.sigma.toFixed(2)}</div>
+                          <div className="text-xs text-gray-500 mt-1">Scale of tail distribution</div>
+                        </div>
+                      )}
+                      {metrics.gpd.threshold !== null && (
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="text-xs text-gray-600 mb-1">Threshold (u)</div>
+                          <div className="text-lg font-bold text-gray-900">{metrics.gpd.threshold.toFixed(2)}</div>
+                          <div className="text-xs text-gray-500 mt-1">Tail modeling start point</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tail Quantiles */}
+                {metrics.tailQuantiles && (metrics.tailQuantiles.q99 !== null || metrics.tailQuantiles.q99_9 !== null) && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Tail Quantiles</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {metrics.tailQuantiles.q99 !== null && (
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="text-xs text-gray-600 mb-1">Q99 (99th Percentile)</div>
+                          <div className="text-lg font-bold text-gray-900">{metrics.tailQuantiles.q99.toFixed(2)}</div>
+                          <div className="text-xs text-gray-500 mt-1">99% of values below this</div>
+                        </div>
+                      )}
+                      {metrics.tailQuantiles.q99_9 !== null && (
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="text-xs text-gray-600 mb-1">Q99.9 (99.9th Percentile)</div>
+                          <div className="text-lg font-bold text-gray-900">{metrics.tailQuantiles.q99_9.toFixed(2)}</div>
+                          <div className="text-xs text-gray-500 mt-1">99.9% of values below this</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {(!metrics.gpd || (metrics.gpd.xi === null && metrics.gpd.sigma === null && metrics.gpd.threshold === null)) &&
+                 (!metrics.tailQuantiles || (metrics.tailQuantiles.q99 === null && metrics.tailQuantiles.q99_9 === null)) && (
+                  <div className="text-sm text-gray-500 italic">
+                    Detailed GPD parameters and quantiles will be available once sufficient tail data is collected.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* System Information */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">

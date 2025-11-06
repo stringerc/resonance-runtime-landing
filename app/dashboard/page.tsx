@@ -218,13 +218,20 @@ export default async function DashboardPage() {
         {license && license.status === "ACTIVE" && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Link
                 href="/dashboard/canary"
                 className="p-4 border border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition"
               >
                 <div className="font-semibold text-gray-900 mb-1">View Monitoring</div>
                 <div className="text-sm text-gray-600">Real-time Resonance metrics and AI insights</div>
+              </Link>
+              <Link
+                href="/dashboard/resonance-calculus"
+                className="p-4 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition"
+              >
+                <div className="font-semibold text-gray-900 mb-1">Resonance Calculus</div>
+                <div className="text-sm text-gray-600">Component breakdown, tail analysis, and timing metrics</div>
               </Link>
               <Link
                 href="/resonance/pricing"
