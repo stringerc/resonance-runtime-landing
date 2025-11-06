@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
 import { stripe } from "@/lib/stripe/config";
 
 // Explicitly use Node.js runtime (required for Stripe API calls)
@@ -89,7 +90,7 @@ export async function GET(req: NextRequest) {
         const coupons = await stripe.coupons.list({
           limit: 100,
         });
-        const coupon = coupons.data.find((c) => c.id === code || c.name === code);
+        const coupon = coupons.data.find((c: Stripe.Coupon) => c.id === code || c.name === code);
 
         if (coupon) {
           diagnostics.checks.coupon = {
