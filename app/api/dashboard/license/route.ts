@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/db";
 
@@ -9,11 +9,21 @@ import { prisma } from "@/lib/db";
  */
 export async function GET(req: NextRequest) {
   try {
+    // Get session - NextAuth should automatically read cookies
     const session = await getServerSession(authOptions);
     
     if (!session?.user?.id) {
+      // Return more detailed error for debugging
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { 
+          error: "Unauthorized",
+          message: "Please sign in to access your license information",
+          debug: {
+            hasSession: !!session,
+            hasUser: !!session?.user,
+            hasUserId: !!session?.user?.id,
+          }
+        },
         { status: 401 }
       );
     }
