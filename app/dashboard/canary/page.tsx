@@ -24,12 +24,15 @@ interface AIInsight {
   }[];
 }
 
+type TimeInterval = 'realtime' | 'hourly' | 'daily' | 'monthly' | 'quarterly' | 'yearly';
+
 export default function CanaryDashboard() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [insights, setInsights] = useState<AIInsight | null>(null);
   const [elapsedHours, setElapsedHours] = useState(0);
   const [history, setHistory] = useState<Array<{ time: number; R: number }>>([]);
+  const [timeInterval, setTimeInterval] = useState<TimeInterval>('realtime');
 
   useEffect(() => {
     fetchMetrics();
@@ -56,12 +59,13 @@ export default function CanaryDashboard() {
       const data = await response.json();
       setMetrics(data);
       
-      // Add to history (keep last 50 points for graph)
+      // Add to history (store more points for longer intervals)
       if (data && data.R !== undefined) {
         setHistory(prev => {
           const newHistory = [...prev, { time: Date.now(), R: data.R }];
-          // Keep only last 50 points
-          return newHistory.slice(-50);
+          // Keep more points for longer intervals (up to 1000 points = ~1.4 hours at 5s intervals)
+          const maxPoints = 1000;
+          return newHistory.slice(-maxPoints);
         });
       }
       
@@ -74,6 +78,47 @@ export default function CanaryDashboard() {
       console.error('Failed to fetch metrics:', error);
       setLoading(false);
     }
+  };
+
+  // Get filtered/aggregated data based on interval
+  const getFilteredHistory = () => {
+    if (history.length === 0) return [];
+    
+    const now = Date.now();
+    const intervalMs: Record<TimeInterval, number> = {
+      realtime: 5 * 1000, // 5 seconds
+      hourly: 60 * 60 * 1000, // 1 hour
+      daily: 24 * 60 * 60 * 1000, // 1 day
+      monthly: 30 * 24 * 60 * 60 * 1000, // 30 days
+      quarterly: 90 * 24 * 60 * 60 * 1000, // 90 days
+      yearly: 365 * 24 * 60 * 60 * 1000, // 365 days
+    };
+
+    const interval = intervalMs[timeInterval];
+    const cutoffTime = now - interval;
+    
+    // Filter data within the interval
+    const filtered = history.filter(point => point.time >= cutoffTime);
+    
+    if (filtered.length === 0) return [];
+    
+    // For longer intervals, aggregate data points
+    if (timeInterval !== 'realtime' && filtered.length > 100) {
+      const buckets = 100; // Max 100 points on graph
+      const bucketSize = Math.ceil(filtered.length / buckets);
+      const aggregated: Array<{ time: number; R: number }> = [];
+      
+      for (let i = 0; i < filtered.length; i += bucketSize) {
+        const bucket = filtered.slice(i, i + bucketSize);
+        const avgR = bucket.reduce((sum, p) => sum + p.R, 0) / bucket.length;
+        const avgTime = bucket.reduce((sum, p) => sum + p.time, 0) / bucket.length;
+        aggregated.push({ time: avgTime, R: avgR });
+      }
+      
+      return aggregated;
+    }
+    
+    return filtered;
   };
 
   const generateInsights = (m: Metrics) => {
@@ -203,7 +248,24 @@ export default function CanaryDashboard() {
 
         {/* Main Graph */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Global Resonance Overview</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Global Resonance Overview</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Time Range:</span>
+              <select
+                value={timeInterval}
+                onChange={(e) => setTimeInterval(e.target.value as TimeInterval)}
+                className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+              >
+                <option value="realtime">Real-time</option>
+                <option value="hourly">Last Hour</option>
+                <option value="daily">Last 24 Hours</option>
+                <option value="monthly">Last 30 Days</option>
+                <option value="quarterly">Last 90 Days</option>
+                <option value="yearly">Last Year</option>
+              </select>
+            </div>
+          </div>
           <div className="relative h-64 bg-gray-50 rounded-lg p-4">
             <svg className="w-full h-full" viewBox="0 0 800 240" preserveAspectRatio="none">
               {/* Target band area */}
@@ -242,18 +304,24 @@ export default function CanaryDashboard() {
               ))}
               
               {/* R(t) line graph */}
-              {history.length > 1 && (
-                <polyline
-                  points={history.map((point, idx) => {
-                    const x = (idx / (history.length - 1)) * 800;
-                    const y = (1 - point.R) * 240;
-                    return `${x},${y}`;
-                  }).join(' ')}
-                  fill="none"
-                  stroke="#3b82f6"
-                  strokeWidth="2"
-                />
-              )}
+              {(() => {
+                const filtered = getFilteredHistory();
+                if (filtered.length > 1) {
+                  return (
+                    <polyline
+                      points={filtered.map((point, idx) => {
+                        const x = (idx / (filtered.length - 1)) * 800;
+                        const y = (1 - point.R) * 240;
+                        return `${x},${y}`;
+                      }).join(' ')}
+                      fill="none"
+                      stroke="#3b82f6"
+                      strokeWidth="2"
+                    />
+                  );
+                }
+                return null;
+              })()}
               
               {/* Current value indicator */}
               {metrics && (
@@ -301,7 +369,7 @@ export default function CanaryDashboard() {
               <span>Status: <span className={bandStatus.color}>{bandStatus.status.toUpperCase()}</span></span>
             </div>
             <div className="text-xs text-gray-500">
-              {history.length} data points
+              {getFilteredHistory().length} data points shown ({history.length} total stored)
             </div>
           </div>
         </div>
