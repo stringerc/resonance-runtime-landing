@@ -8,9 +8,6 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Resonance Calculus Platform",
   description: "Enterprise-grade performance analytics and monitoring",
-  icons: {
-    icon: '/favicon.ico',
-  },
 };
 
 export default function RootLayout({
