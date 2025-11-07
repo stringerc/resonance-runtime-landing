@@ -259,6 +259,31 @@ export default function ResonanceCalculusPage() {
             </div>
           </div>
 
+          <div className="mb-6 p-5 border border-blue-200 bg-blue-50 rounded-lg">
+            <h3 className="text-sm font-semibold text-blue-900 uppercase tracking-wide mb-2">Getting Into Tune</h3>
+            <p className="text-sm text-blue-800 mb-3">
+              Band compliance rises only when the agent is in adaptive control and receiving live phase samples.
+              Follow this checklist to drive R(t) into the optimal band:
+            </p>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-blue-900">
+              <li>
+                <span className="font-medium">Start the agent in adaptive mode:</span> ensure <code>RESONANCE_MODE=adaptive</code> (Render → Environment) and redeploy if needed.
+              </li>
+              <li>
+                <span className="font-medium">Feed phase / latency samples:</span> deploy the Resonance SDK or run <code>node resonance/bench/feed_phases.js</code> to push test samples to the intake endpoint.
+              </li>
+              <li>
+                <span className="font-medium">Let it run for a few minutes:</span> once 50+ samples arrive, Resonance Calculus metrics will populate and R(t) will begin climbing.
+              </li>
+              <li>
+                <span className="font-medium">Tune if needed:</span> adjust coupling (K_min/K_max) or workload mix if R(t) remains outside the band after several minutes.
+              </li>
+            </ol>
+            <p className="text-xs text-blue-700 mt-3">
+              Tip: the Intercom assistant can guide you through these steps in real time once activated.
+            </p>
+          </div>
+
           <div className="relative h-80 bg-gray-50 rounded-lg p-4">
             <svg className="w-full h-full" viewBox="0 0 1000 300" preserveAspectRatio="none">
               {/* Resonance Band Zones */}
