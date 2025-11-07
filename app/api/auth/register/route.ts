@@ -91,9 +91,10 @@ export async function POST(req: NextRequest) {
     
     console.error("Registration error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", message: error?.message ?? "Unknown error" },
       { status: 500 }
     );
   }
 }
+
 
