@@ -25,12 +25,24 @@ function createRatelimit(limit: number, duration: Parameters<typeof Ratelimit.sl
     };
   }
 
-  return new Ratelimit({
+  const rl = new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(limit, duration),
     analytics: true,
     prefix,
   });
+
+  return {
+    async limit(identifier: string) {
+      try {
+        const result = await rl.limit(identifier);
+        return { success: result.success } as const;
+      } catch (error) {
+        console.warn(`⚠️  Rate limiter (${prefix}) failed:`, error);
+        return { success: true } as const;
+      }
+    },
+  };
 }
 
 /**
