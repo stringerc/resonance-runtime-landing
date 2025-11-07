@@ -3,43 +3,50 @@ import { Redis } from "@upstash/redis";
 
 // Initialize Redis client (Upstash serverless Redis)
 // Note: In production, these should be set. For development, rate limiting will fail gracefully.
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || "",
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
-});
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-// Warn if Redis is not configured (rate limiting will not work)
-if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-  console.warn("⚠️  Upstash Redis not configured. Rate limiting will not work.");
+let redis: Redis | null = null;
+if (redisUrl && redisToken) {
+  redis = new Redis({
+    url: redisUrl,
+    token: redisToken,
+  });
+} else {
+  console.warn("⚠️  Upstash Redis not configured. Rate limiting will be disabled.");
+}
+
+function createRatelimit(limit: number, duration: Parameters<typeof Ratelimit.slidingWindow>[1], prefix: string) {
+  if (!redis) {
+    return {
+      async limit(_identifier?: string) {
+        return { success: true } as const;
+      },
+    };
+  }
+
+  return new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(limit, duration),
+    analytics: true,
+    prefix,
+  });
 }
 
 /**
  * Login attempts: 5 per 15 minutes per IP
  */
-export const loginRatelimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(5, "15 m"),
-  analytics: true,
-  prefix: "ratelimit:login",
-});
+export const loginRatelimit = createRatelimit(5, "15 m", "ratelimit:login");
 
 /**
  * Password reset: 3 per hour per email
  */
-export const passwordResetRatelimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(3, "1 h"),
-  prefix: "ratelimit:password-reset",
-});
+export const passwordResetRatelimit = createRatelimit(3, "1 h", "ratelimit:password-reset");
 
 /**
  * Registration: 3 per hour per IP
  */
-export const registrationRatelimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(3, "1 h"),
-  prefix: "ratelimit:register",
-});
+export const registrationRatelimit = createRatelimit(3, "1 h", "ratelimit:register");
 
 /**
  * Account lockout after 5 failed attempts (15 min cooldown)
@@ -47,6 +54,10 @@ export const registrationRatelimit = new Ratelimit({
 export async function checkAccountLockout(
   email: string
 ): Promise<{ locked: boolean; unlockAt?: Date }> {
+  if (!redis) {
+    return { locked: false };
+  }
+
   const key = `lockout:${email}`;
   const attempts = await redis.get<number>(key);
   
@@ -67,6 +78,10 @@ export async function checkAccountLockout(
  * Record failed login attempt
  */
 export async function recordFailedLogin(email: string): Promise<void> {
+  if (!redis) {
+    return;
+  }
+
   const key = `lockout:${email}`;
   const attempts = await redis.incr(key);
   
@@ -80,6 +95,10 @@ export async function recordFailedLogin(email: string): Promise<void> {
  * Reset failed login attempts on successful login
  */
 export async function resetFailedLogins(email: string): Promise<void> {
+  if (!redis) {
+    return;
+  }
+
   const key = `lockout:${email}`;
   await redis.del(key);
 }
