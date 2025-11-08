@@ -51,7 +51,7 @@ export default function ResonanceCalculusPage() {
   const [timeInterval, setTimeInterval] = useState<TimeInterval>('daily');
   const [selectedComponent, setSelectedComponent] = useState<'coherence' | 'tail' | 'timing' | 'all'>('all');
 
-  const bandCompliance = useMemo(() => {
+  const overallBandCompliance = useMemo(() => {
     if (!history.length) {
       return { percentage: 0, inBand: 0, total: 0 };
     }
@@ -950,7 +950,7 @@ export default function ResonanceCalculusPage() {
           </div>
           <ResonanceInsights
             metrics={insightMetrics}
-            band={bandCompliance}
+            band={overallBandCompliance}
             latestSampleTime={latestSampleTime}
             latencyPresent={Boolean(metrics?.p99Latency)}
           />
