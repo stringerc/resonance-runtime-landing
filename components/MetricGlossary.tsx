@@ -66,9 +66,14 @@ export default function MetricGlossary() {
           </div>
           <div className="text-xs text-gray-500 mt-4">
             Need the math? Review the{" "}
-            <Link href="/docs/resonance-calculus" className="text-primary-600 hover:text-primary-700 underline">
+            <a
+              href="https://github.com/stringerc/resonance-runtime-landing/blob/main/RESONANCE_CALCULUS_COMPREHENSIVE_REVIEW.md"
+              target="_blank"
+              rel="noreferrer"
+              className="text-primary-600 hover:text-primary-700 underline"
+            >
               Resonance Calculus dossier
-            </Link>
+            </a>
             .
           </div>
         </div>
