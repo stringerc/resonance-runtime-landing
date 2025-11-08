@@ -8,6 +8,7 @@ import DashboardClient from "./DashboardClient";
 import OnboardingChecklist from "@/components/dashboard/OnboardingChecklist";
 import OnboardingLauncher from "@/components/onboarding/OnboardingLauncher";
 import DataAlerts from "@/components/onboarding/DataAlerts";
+import HealthSnapshotExporter from "@/components/dashboard/HealthSnapshotExporter";
 
 type MetricKey =
   | "R"
@@ -35,6 +36,11 @@ export default async function DashboardPage() {
     redirect("/auth/signin");
   }
 
+  const environment = process.env.VERCEL ? "production" : process.env.NODE_ENV ?? "development";
+  const agentVersion = process.env.RESONANCE_AGENT_VERSION ?? null;
+  const releaseChannel = process.env.RESONANCE_RELEASE_CHANNEL ?? undefined;
+  const agentUrl = process.env.RESONANCE_AGENT_URL ?? null;
+
   // Fetch user's license
   const license = await prisma.license.findFirst({
     where: { userId: session.user.id },
@@ -45,9 +51,31 @@ export default async function DashboardPage() {
   const recentMetrics = await prisma.userMetric.findMany({
     where: { userId: session.user.id },
     orderBy: { timestamp: "desc" },
-    take: 10,
+    take: 300,
   });
-  const orderedMetrics = [...recentMetrics].reverse();
+  const orderedMetrics = [...recentMetrics].reverse(); // For chronological display in sparklines
+  const cardMetrics = recentMetrics.slice(0, 10);
+
+  const uptimePercentage = (() => {
+    if (!orderedMetrics.length) {
+      return 0;
+    }
+    const now = Date.now();
+    const windowMs = 24 * 60 * 60 * 1000;
+    const windowStart = now - windowMs;
+    const samples = orderedMetrics.filter((metric) => metric.timestamp.getTime() >= windowStart);
+    if (!samples.length) {
+      return 0;
+    }
+    let covered = 0;
+    for (let i = 0; i < samples.length; i += 1) {
+      const current = samples[i].timestamp.getTime();
+      const next = i + 1 < samples.length ? samples[i + 1].timestamp.getTime() : now;
+      const gap = Math.max(0, Math.min(next - current, 10 * 60 * 1000));
+      covered += gap;
+    }
+    return Math.max(0, Math.min(100, (covered / windowMs) * 100));
+  })();
 
   const resonanceHistory = orderedMetrics
     .map((metric) => {
@@ -462,6 +490,17 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        <HealthSnapshotExporter
+          metrics={insightMetrics}
+          bandCompliance={bandComplianceOverview}
+          agentVersion={agentVersion}
+          releaseChannel={releaseChannel}
+          uptimePercentage={uptimePercentage}
+          lastSampleTime={latestSampleTime}
+          environment={environment}
+          agentUrl={agentUrl}
+        />
+
         {/* Metrics Section */}
         <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
           <div className="mb-4 flex items-center justify-between">
@@ -475,7 +514,7 @@ export default async function DashboardPage() {
           {resonanceHistory.length > 0 ? (
             <>
               <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-                {recentMetrics.map((metric) => {
+                {cardMetrics.map((metric) => {
                   const record = isObjectRecord(metric.data) ? metric.data : {};
                   const rValue = getNumericField(record, "R");
                   const spectralEntropy = getNumericField(record, "spectralEntropy");

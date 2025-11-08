@@ -21,6 +21,7 @@ interface DashboardChromeProps {
   releaseChannel?: string | null;
   buildCommit?: string | null;
   environment?: string | null;
+  uptimePercentage?: number;
 }
 
 export default function DashboardChrome({
@@ -34,6 +35,7 @@ export default function DashboardChrome({
   releaseChannel,
   buildCommit,
   environment,
+  uptimePercentage,
 }: DashboardChromeProps) {
   const pathname = usePathname();
 
@@ -80,6 +82,7 @@ export default function DashboardChrome({
           releaseChannel={releaseChannel}
           buildCommit={buildCommit}
           environment={environment}
+          uptimePercentage={uptimePercentage}
         />
       </header>
       <div className="flex min-h-[calc(100vh-4.5rem)]">

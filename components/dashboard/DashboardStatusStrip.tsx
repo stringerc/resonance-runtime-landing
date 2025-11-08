@@ -11,6 +11,7 @@ interface DashboardStatusStripProps {
   releaseChannel?: string | null;
   buildCommit?: string | null;
   environment?: string | null;
+  uptimePercentage?: number;
 }
 
 const StatusPill = ({
@@ -67,6 +68,7 @@ export default function DashboardStatusStrip({
   releaseChannel,
   buildCommit,
   environment,
+  uptimePercentage,
 }: DashboardStatusStripProps) {
   const lastSample = lastSampleAt
     ? formatDistanceToNow(new Date(lastSampleAt), { addSuffix: true })
@@ -78,6 +80,8 @@ export default function DashboardStatusStrip({
   const versionLabel = agentVersion ? (agentVersion.startsWith("v") ? agentVersion : `v${agentVersion}`) : "Unknown";
   const commitLabel = buildCommit ? buildCommit.slice(0, 7) : null;
   const environmentLabel = environment ? environment.charAt(0).toUpperCase() + environment.slice(1) : "Unknown";
+  const uptimeLabel = typeof uptimePercentage === "number" ? `${uptimePercentage.toFixed(1)}%` : "—";
+  const uptimeTone = uptimePercentage !== undefined && uptimePercentage >= 99 ? "good" : uptimePercentage !== undefined && uptimePercentage >= 90 ? "neutral" : "warn";
 
   return (
     <div className="border-t border-b border-surface-800 bg-surface-900/75">
@@ -115,6 +119,11 @@ export default function DashboardStatusStrip({
           label="Environment"
           value={environmentLabel}
           tone={environment === "production" ? "good" : "neutral"}
+        />
+        <StatusPill
+          label="24h Uptime"
+          value={uptimeLabel}
+          tone={uptimeTone}
         />
         {commitLabel && (
           <StatusPill
