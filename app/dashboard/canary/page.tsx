@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import MetricGlossary from '@/components/MetricGlossary';
 
 interface Metrics {
   R: number;
@@ -319,12 +320,27 @@ export default function CanaryDashboard() {
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex-1">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Canary Mode Monitoring</h1>
-          <div className="flex items-center gap-4 text-sm text-gray-600">
-            <span>Elapsed: <strong>{elapsedHours.toFixed(1)} hours</strong> / 24 hours</span>
-            <span className="text-primary-600">Mode: <strong className={getModeColor(modeLabel)}>{modeLabel.charAt(0).toUpperCase() + modeLabel.slice(1)}</strong></span>
+          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+            <span>
+              Elapsed: <strong>{elapsedHours.toFixed(1)} hours</strong> / 24 hours
+            </span>
+            <span className="text-primary-600">
+              Mode:{' '}
+              <strong className={getModeColor(modeLabel)}>
+                {modeLabel.charAt(0).toUpperCase() + modeLabel.slice(1)}
+              </strong>
+            </span>
+            <a
+              href="#metric-glossary"
+              className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700"
+            >
+              Need a refresher? <span className="font-semibold">Open the field guide →</span>
+            </a>
           </div>
         </div>
 
@@ -869,6 +885,9 @@ export default function CanaryDashboard() {
               <span className="text-green-600 font-semibold">✅ 24 hours complete! Ready for review.</span>
             )}
           </div>
+        </div>
+          </div>
+          <MetricGlossary />
         </div>
       </div>
     </div>

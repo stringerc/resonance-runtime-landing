@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import MetricGlossary from '@/components/MetricGlossary';
 
 interface Metrics {
   R: number;
@@ -208,12 +209,22 @@ export default function ResonanceCalculusPage() {
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex-1">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Resonance Calculus Analysis</h1>
           <p className="text-gray-600">
             Comprehensive breakdown of coherence-weighted service curves, tail health, and max-plus timing analysis
           </p>
+          <div className="mt-3 text-sm">
+            <a
+              href="#metric-glossary"
+              className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700"
+            >
+              Need definitions? <span className="font-semibold">Jump to the field guide →</span>
+            </a>
+          </div>
         </div>
 
         {/* Resonance Band Visualization (Patent Figure 2) */}
@@ -923,6 +934,9 @@ export default function ResonanceCalculusPage() {
             </div>
           </div>
         )}
+          </div>
+          <MetricGlossary />
+        </div>
       </div>
     </div>
   );
