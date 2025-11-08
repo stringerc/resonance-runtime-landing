@@ -193,10 +193,10 @@ export default function ResonanceCalculusPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading Resonance Calculus data...</p>
+      <div className="flex min-h-screen items-center justify-center bg-surface-900">
+        <div className="text-center text-neutral-400">
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-brand-400" />
+          <p>Loading Resonance Calculus data...</p>
         </div>
       </div>
     );
@@ -204,12 +204,12 @@ export default function ResonanceCalculusPage() {
 
   if (!metrics) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-surface-900">
         <div className="text-center">
-          <p className="text-red-600 mb-4">Failed to load metrics</p>
+          <p className="mb-4 text-rose-400">Failed to load metrics</p>
           <button
             onClick={fetchMetrics}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+            className="rounded-lg bg-brand-gradient px-4 py-2 text-sm font-semibold text-neutral-900 transition hover:opacity-90"
           >
             Retry
           </button>
@@ -228,19 +228,17 @@ export default function ResonanceCalculusPage() {
       <div className="mx-auto max-w-7xl flex flex-col lg:flex-row gap-6">
         <div className="flex-1 space-y-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Resonance Calculus Analysis</h1>
-          <p className="text-gray-600">
-            Comprehensive breakdown of coherence-weighted service curves, tail health, and max-plus timing analysis
+        <div className="mb-6 space-y-3">
+          <h1 className="text-3xl font-bold text-neutral-50">Resonance Calculus Analysis</h1>
+          <p className="text-neutral-400">
+            Comprehensive breakdown of coherence-weighted service curves, tail health, and max-plus timing analysis.
           </p>
-          <div className="mt-3 text-sm">
-            <a
-              href="#metric-glossary"
-              className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700"
-            >
-              Need guidance? <span className="font-semibold">Open live insights →</span>
-            </a>
-          </div>
+          <a
+            href="#resonance-insights"
+            className="inline-flex items-center gap-2 text-sm text-brand-200 hover:text-brand-100"
+          >
+            Need guidance? <span className="font-semibold">Jump to live AI insights →</span>
+          </a>
         </div>
 
         {/* Resonance Band Visualization (Patent Figure 2) */}
@@ -265,28 +263,31 @@ export default function ResonanceCalculusPage() {
           </div>
           
           {/* Band Compliance */}
-          <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center justify-between">
+          <div className="mb-4 rounded-xl border border-surface-800 bg-surface-900/70 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <div className="text-sm text-gray-600 mb-1">Band Compliance</div>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-sm text-neutral-400">Band Compliance</div>
+                <div className="text-2xl font-bold text-neutral-50">
                   {bandCompliance.percentage.toFixed(1)}%
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {bandCompliance.inBand} / {bandCompliance.total} points in optimal band [0.35, 0.65]
+                <div className="mt-1 text-xs text-neutral-500">
+                  {bandCompliance.inBand} / {bandCompliance.total} points inside optimal band [0.35, 0.65]
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-600 mb-1">Target</div>
-                <div className="text-lg font-semibold text-green-600">≥ 85%</div>
-                <div className={`text-xs mt-1 ${bandCompliance.percentage >= 85 ? 'text-green-600' : 'text-yellow-600'}`}>
-                  {bandCompliance.percentage >= 85 ? '✓ Compliant' : '⚠ Below Target'}
+                <div className="text-sm text-neutral-400">Target ≥ 85%</div>
+                <div
+                  className={`text-sm font-semibold ${
+                    bandCompliance.percentage >= 85 ? 'text-emerald-300' : 'text-amber-300'
+                  }`}
+                >
+                  {bandCompliance.percentage >= 85 ? 'On target' : 'Needs improvement'}
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="relative h-80 bg-gray-50 rounded-lg p-4">
+          <div className="relative h-80 rounded-xl border border-surface-800 bg-surface-900/70 p-4">
             <svg className="w-full h-full" viewBox="0 0 1000 300" preserveAspectRatio="none">
               {/* Resonance Band Zones */}
               {/* Low zone */}
@@ -324,7 +325,7 @@ export default function ResonanceCalculusPage() {
                 x="500"
                 y={(1 - 0.5) * 300}
                 textAnchor="middle"
-                className="text-xs font-semibold fill-green-700"
+                className="text-xs font-semibold fill-emerald-300"
                 fontSize="12"
               >
                 OPTIMAL BAND [0.35, 0.65]
@@ -542,7 +543,7 @@ export default function ResonanceCalculusPage() {
                     key={val}
                     x="5"
                     y={(1 - val) * 240 + 4}
-                    className="text-xs fill-gray-600"
+                    className="text-xs fill-neutral-500"
                     fontSize="12"
                   >
                     {val.toFixed(2)}
@@ -552,20 +553,20 @@ export default function ResonanceCalculusPage() {
             </div>
             
             {/* Legend */}
-            <div className="mt-4 flex items-center gap-6 text-sm">
+            <div className="mt-4 flex items-center gap-6 text-sm text-neutral-400">
               {selectedComponent === 'all' && (
                 <>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-0.5 bg-blue-600"></div>
-                    <span className="text-gray-700">Coherence Score</span>
+                    <span className="text-neutral-300">Coherence Score</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-0.5 bg-green-600"></div>
-                    <span className="text-gray-700">Tail Health Score</span>
+                    <span className="text-neutral-300">Tail Health Score</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-0.5 bg-purple-600"></div>
-                    <span className="text-gray-700">Timing Score</span>
+                    <span className="text-neutral-300">Timing Score</span>
                   </div>
                 </>
               )}
@@ -646,88 +647,79 @@ export default function ResonanceCalculusPage() {
         )}
 
         {/* Tail Health Analysis Panel */}
-        {tailHealthScore !== null && tailHealthScore !== undefined && (                                                                         
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Tail Health Analysis</h2>
-            
-            {/* Summary */}
-            <div className="mb-6">
-              <div className="flex items-center gap-4">
-                <div>
-                  <div className="text-sm text-gray-600 mb-1">Tail Health Score</div>
-                  <div className="text-4xl font-bold text-gray-900">
-                    {(tailHealthScore * 100).toFixed(1)}%
-                  </div>
+        {tailHealthScore !== null && tailHealthScore !== undefined && (
+          <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
+            <h2 className="mb-4 text-xl font-semibold text-neutral-50">Tail Health Analysis</h2>
+
+            <div className="mb-6 flex flex-wrap items-center gap-4">
+              <div>
+                <div className="mb-1 text-sm text-neutral-400">Tail Health Score</div>
+                <div className="text-4xl font-bold text-neutral-50">{(tailHealthScore * 100).toFixed(1)}%</div>
+              </div>
+              <div className="flex-1">
+                <div className="h-6 overflow-hidden rounded-full bg-surface-800">
+                  <div
+                    className={`h-full transition-all duration-300 ${
+                      tailHealthScore >= 0.7 ? 'bg-emerald-400' :
+                      tailHealthScore >= 0.5 ? 'bg-amber-300' :
+                      'bg-rose-500'
+                    }`}
+                    style={{ width: `${Math.min(Math.max(tailHealthScore * 100, 0), 100)}%` }}
+                  />
                 </div>
-                <div className="flex-1">
-                  <div className="h-6 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-300 ${
-                        tailHealthScore >= 0.7 ? 'bg-green-600' :
-                        tailHealthScore >= 0.5 ? 'bg-yellow-500' :
-                        'bg-red-600'
-                      }`}
-                      style={{ width: `${Math.min(Math.max(tailHealthScore * 100, 0), 100)}%` }}
-                    />
-                  </div>
-                </div>
+              </div>
+              <div className={`text-sm font-semibold ${tailHealthScore >= 0.7 ? 'text-emerald-300' : tailHealthScore >= 0.5 ? 'text-amber-300' : 'text-rose-300'}`}>
+                {tailHealthScore >= 0.7 ? 'Healthy tail' : tailHealthScore >= 0.5 ? 'Monitor tail spikes' : 'High risk tail latency'}
               </div>
             </div>
 
-            {/* GPD Parameters */}
             {metrics.gpd && (metrics.gpd.xi !== null || metrics.gpd.sigma !== null || metrics.gpd.threshold !== null) && (
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-700 mb-3">GPD Parameters</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <h3 className="mb-3 text-lg font-semibold text-neutral-200">GPD Parameters</h3>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   {metrics.gpd.xi !== null && (
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <div className="text-sm text-gray-600 mb-1">Shape Parameter (ξ)</div>
-                      <div className="text-2xl font-bold text-gray-900 mb-2">{metrics.gpd.xi.toFixed(4)}</div>
-                      <div className="text-xs text-gray-500">
-                        {metrics.gpd.xi > 0 ? 'Heavy tail (ξ > 0)' : 
-                         metrics.gpd.xi < 0 ? 'Light tail (ξ < 0)' : 
-                         'Exponential (ξ ≈ 0)'}
+                    <div className="rounded-xl border border-surface-700 bg-surface-900/70 p-4">
+                      <div className="mb-1 text-xs text-neutral-400">Shape Parameter (ξ)</div>
+                      <div className="mb-2 text-2xl font-bold text-neutral-50">{metrics.gpd.xi.toFixed(4)}</div>
+                      <div className="text-xs text-neutral-500">
+                        {metrics.gpd.xi > 0 ? 'Heavy tail (ξ > 0)' : metrics.gpd.xi < 0 ? 'Light tail (ξ < 0)' : 'Exponential tail (ξ ≈ 0)'}
                       </div>
                     </div>
                   )}
                   {metrics.gpd.sigma !== null && (
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <div className="text-sm text-gray-600 mb-1">Scale Parameter (σ)</div>
-                      <div className="text-2xl font-bold text-gray-900 mb-2">{metrics.gpd.sigma.toFixed(2)}</div>
-                      <div className="text-xs text-gray-500">Scale of tail distribution</div>
+                    <div className="rounded-xl border border-surface-700 bg-surface-900/70 p-4">
+                      <div className="mb-1 text-xs text-neutral-400">Scale Parameter (σ)</div>
+                      <div className="mb-2 text-2xl font-bold text-neutral-50">{metrics.gpd.sigma.toFixed(2)}</div>
+                      <div className="text-xs text-neutral-500">Scale of extreme events</div>
                     </div>
                   )}
                   {metrics.gpd.threshold !== null && (
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <div className="text-sm text-gray-600 mb-1">Threshold (u)</div>
-                      <div className="text-2xl font-bold text-gray-900 mb-2">{metrics.gpd.threshold.toFixed(2)}</div>
-                      <div className="text-xs text-gray-500">Tail modeling start point</div>
+                    <div className="rounded-xl border border-surface-700 bg-surface-900/70 p-4">
+                      <div className="mb-1 text-xs text-neutral-400">Threshold (u)</div>
+                      <div className="mb-2 text-2xl font-bold text-neutral-50">{metrics.gpd.threshold.toFixed(2)}</div>
+                      <div className="text-xs text-neutral-500">Tail modelling start point</div>
                     </div>
                   )}
                 </div>
               </div>
             )}
 
-            {/* Tail Quantiles */}
             {metrics.tailQuantiles && (metrics.tailQuantiles.q99 !== null || metrics.tailQuantiles.q99_9 !== null) && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-700 mb-3">Tail Quantiles</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {metrics.tailQuantiles.q99 !== null && (
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <div className="text-sm text-gray-600 mb-1">Q99 (99th Percentile)</div>
-                      <div className="text-2xl font-bold text-gray-900 mb-2">{metrics.tailQuantiles.q99.toFixed(2)}</div>
-                      <div className="text-xs text-gray-500">99% of values below this threshold</div>
-                    </div>
-                  )}
-                  {metrics.tailQuantiles.q99_9 !== null && (
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <div className="text-sm text-gray-600 mb-1">Q99.9 (99.9th Percentile)</div>
-                      <div className="text-2xl font-bold text-gray-900 mb-2">{metrics.tailQuantiles.q99_9.toFixed(2)}</div>
-                      <div className="text-xs text-gray-500">99.9% of values below this threshold</div>
-                    </div>
-                  )}
-                </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {metrics.tailQuantiles.q99 !== null && (
+                  <div className="rounded-xl border border-surface-700 bg-surface-900/70 p-4">
+                    <div className="mb-1 text-xs text-neutral-400">Q99 (99th Percentile)</div>
+                    <div className="mb-2 text-2xl font-bold text-neutral-50">{metrics.tailQuantiles.q99.toFixed(2)}</div>
+                    <div className="text-xs text-neutral-500">99% of samples below this latency</div>
+                  </div>
+                )}
+                {metrics.tailQuantiles.q99_9 !== null && (
+                  <div className="rounded-xl border border-surface-700 bg-surface-900/70 p-4">
+                    <div className="mb-1 text-xs text-neutral-400">Q99.9 (99.9th Percentile)</div>
+                    <div className="mb-2 text-2xl font-bold text-neutral-50">{metrics.tailQuantiles.q99_9.toFixed(2)}</div>
+                    <div className="text-xs text-neutral-500">99.9% of samples below this latency</div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -735,41 +727,37 @@ export default function ResonanceCalculusPage() {
 
         {/* Max-Plus Timing Analysis */}
         {lambdaRes !== null && lambdaRes !== undefined && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Max-Plus Timing Analysis</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
+            <h2 className="mb-4 text-xl font-semibold text-neutral-50">Max-Plus Timing Analysis</h2>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">Current Cycle Time (λ_res)</h3>
-                <div className="text-4xl font-bold text-gray-900 mb-2">
-                  {lambdaRes.toFixed(3)}
-                </div>
-                <div className="text-sm text-gray-600">
-                  {lambdaRes < 10 ? '✓ Fast cycle time - good synchronization' :
-                   lambdaRes < 50 ? '⚠ Moderate cycle time - monitor bottlenecks' :
-                   '⚠ Slow cycle time - potential bottlenecks detected'}
+                <h3 className="mb-2 text-sm font-semibold text-neutral-300">Current Cycle Time (λ_res)</h3>
+                <div className="mb-2 text-4xl font-bold text-neutral-50">{lambdaRes.toFixed(3)}</div>
+                <div className="text-sm text-neutral-400">
+                  {lambdaRes < 10 ? 'Fast cycle time – controllers synchronized' :
+                   lambdaRes < 50 ? 'Moderate cycle time – monitor for drift' :
+                   'Slow cycle time – investigate bottlenecks'}
                 </div>
               </div>
-              
+
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">Timing Score</h3>
+                <h3 className="mb-2 text-sm font-semibold text-neutral-300">Timing Score</h3>
                 {timingScore !== null && timingScore !== undefined ? (
                   <>
-                    <div className="text-4xl font-bold text-gray-900 mb-2">
-                      {(timingScore * 100).toFixed(1)}%
-                    </div>
-                    <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="mb-2 text-4xl font-bold text-neutral-50">{(timingScore * 100).toFixed(1)}%</div>
+                    <div className="h-3 overflow-hidden rounded-full bg-surface-800">
                       <div
-                        className="h-full bg-purple-600 transition-all duration-300"
+                        className="h-full rounded-full bg-indigo-400 transition-all duration-300"
                         style={{ width: `${Math.min(Math.max(timingScore * 100, 0), 100)}%` }}
                       />
                     </div>
-                    <div className="text-sm text-gray-600 mt-2">
-                      Derived from max-plus eigenvalue: 1 / (1 + λ_res / scale)
+                    <div className="mt-2 text-sm text-neutral-500">
+                      Derived from max-plus eigenvalue: consistent cycles signal stable feedback loops.
                     </div>
                   </>
                 ) : (
-                  <div className="text-gray-500">Not available</div>
+                  <div className="text-sm text-neutral-500">Timing score not available</div>
                 )}
               </div>
             </div>
@@ -778,19 +766,16 @@ export default function ResonanceCalculusPage() {
 
         {/* Resonance Balance View (Patent Figure 4) */}
         {hasCalculus && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-4">Resonance Balance</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Multi-dimensional view of system resonance across key dimensions
+          <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
+            <h2 className="mb-4 text-xl font-semibold text-neutral-50">Resonance Balance</h2>
+            <p className="mb-4 text-sm text-neutral-400">
+              Multi-dimensional view of coherence, tail health, timing predictability, and spectral entropy.
             </p>
-            
+
             <div className="flex items-center justify-center">
-              <div className="relative w-64 h-64">
-                <svg viewBox="0 0 200 200" className="w-full h-full">
-                  {/* Background circle */}
-                  <circle cx="100" cy="100" r="80" fill="none" stroke="#e5e7eb" strokeWidth="2"/>
-                  
-                  {/* Grid lines */}
+              <div className="relative h-64 w-64">
+                <svg viewBox="0 0 200 200" className="h-full w-full">
+                  <circle cx="100" cy="100" r="80" fill="none" stroke="#1f283b" strokeWidth="2" />
                   {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => {
                     const rad = (angle * Math.PI) / 180;
                     const x1 = 100 + 80 * Math.cos(rad);
@@ -802,39 +787,41 @@ export default function ResonanceCalculusPage() {
                         y1="100"
                         x2={x1}
                         y2={y1}
-                        stroke="#e5e7eb"
+                        stroke="#293347"
                         strokeWidth="1"
                       />
                     );
                   })}
-                  
-                  {/* Data polygon */}
+
                   {(() => {
                     const coherence = coherenceScore || 0;
                     const tail = tailHealthScore || 0;
                     const timing = timingScore || 0;
                     const entropy = metrics?.spectralEntropy ?? 0;
-                    
+
                     const points = [
-                      { angle: 0, value: coherence },      // Coherence (right)
-                      { angle: 90, value: tail },         // Tail Health (top)
-                      { angle: 180, value: timing },       // Timing (left)
-                      { angle: 270, value: entropy },      // Spectral Entropy (bottom)
+                      { angle: 0, value: coherence },
+                      { angle: 90, value: tail },
+                      { angle: 180, value: timing },
+                      { angle: 270, value: entropy },
                     ];
-                    
-                    const path = points.map((p, idx) => {
-                      const rad = (p.angle * Math.PI) / 180;
-                      const r = 80 * p.value;
-                      const x = 100 + r * Math.cos(rad);
-                      const y = 100 + r * Math.sin(rad);
-                      return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`;
-                    }).join(' ') + ' Z';
-                    
+
+                    const path =
+                      points
+                        .map((p, idx) => {
+                          const rad = (p.angle * Math.PI) / 180;
+                          const r = 80 * p.value;
+                          const x = 100 + r * Math.cos(rad);
+                          const y = 100 + r * Math.sin(rad);
+                          return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`;
+                        })
+                        .join(' ') + ' Z';
+
                     return (
                       <>
                         <path
                           d={path}
-                          fill="rgba(59, 130, 246, 0.2)"
+                          fill="rgba(59, 130, 246, 0.18)"
                           stroke="#3b82f6"
                           strokeWidth="2"
                         />
@@ -843,63 +830,38 @@ export default function ResonanceCalculusPage() {
                           const r = 80 * p.value;
                           const x = 100 + r * Math.cos(rad);
                           const y = 100 + r * Math.sin(rad);
-                          return (
-                            <circle
-                              key={idx}
-                              cx={x}
-                              cy={y}
-                              r="4"
-                              fill="#3b82f6"
-                            />
-                          );
+                          return <circle key={idx} cx={x} cy={y} r="4" fill="#3b82f6" stroke="white" strokeWidth="1" />;
                         })}
                       </>
                     );
                   })()}
-                  
-                  {/* Labels */}
-                  <text x="100" y="20" textAnchor="middle" className="text-xs fill-gray-700" fontSize="12">
-                    Tail Health
-                  </text>
-                  <text x="190" y="105" textAnchor="middle" className="text-xs fill-gray-700" fontSize="12">
-                    Coherence
-                  </text>
-                  <text x="100" y="190" textAnchor="middle" className="text-xs fill-gray-700" fontSize="12">
-                    Entropy
-                  </text>
-                  <text x="10" y="105" textAnchor="middle" className="text-xs fill-gray-700" fontSize="12">
-                    Timing
-                  </text>
                 </svg>
               </div>
             </div>
-            
-            <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+
+            <div className="mt-6 grid grid-cols-2 gap-4 text-center md:grid-cols-4">
               <div>
-                <div className="text-sm text-gray-600 mb-1">Coherence</div>
-                <div className="text-lg font-bold text-gray-900">
-                  {coherenceScore !== null && coherenceScore !== undefined ? (coherenceScore * 100).toFixed(0) : '0'}%
+                <div className="text-sm text-neutral-400">Coherence</div>
+                <div className="text-lg font-semibold text-neutral-50">
+                  {(coherenceScore !== null && coherenceScore !== undefined ? coherenceScore * 100 : 0).toFixed(0)}%
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-600 mb-1">Tail Health</div>
-                <div className="text-lg font-bold text-gray-900">
-                  {tailHealthScore !== null && tailHealthScore !== undefined ? (tailHealthScore * 100).toFixed(0) : '0'}%
+                <div className="text-sm text-neutral-400">Tail Health</div>
+                <div className="text-lg font-semibold text-neutral-50">
+                  {(tailHealthScore !== null && tailHealthScore !== undefined ? tailHealthScore * 100 : 0).toFixed(0)}%
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-600 mb-1">Timing</div>
-                <div className="text-lg font-bold text-gray-900">
-                  {timingScore !== null && timingScore !== undefined ? (timingScore * 100).toFixed(0) : '0'}%
+                <div className="text-sm text-neutral-400">Timing</div>
+                <div className="text-lg font-semibold text-neutral-50">
+                  {(timingScore !== null && timingScore !== undefined ? timingScore * 100 : 0).toFixed(0)}%
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-600 mb-1">Entropy</div>
-                <div className="text-lg font-bold text-gray-900">
-                  {(metrics?.spectralEntropy !== undefined && metrics?.spectralEntropy !== null
-                    ? metrics.spectralEntropy * 100
-                    : 0
-                  ).toFixed(0)}%
+                <div className="text-sm text-neutral-400">Entropy</div>
+                <div className="text-lg font-semibold text-neutral-50">
+                  {(metrics.spectralEntropy ?? 0).toFixed(2)}
                 </div>
               </div>
             </div>
