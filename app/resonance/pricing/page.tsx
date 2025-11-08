@@ -124,6 +124,30 @@ export default async function ResonancePricingPage() {
           <p className="text-sm text-gray-500 mt-4 max-w-xl mx-auto">
             Lock in our launch pricing today. Prices will increase to standard rates ($49/$149) after the first 100 customers or by March 31, 2025.
           </p>
+          <div className="mt-6 inline-flex max-w-2xl items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left">
+            <svg
+              className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-500"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.172 7.707 8.879a1 1 0 10-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <div className="text-sm text-emerald-800">
+              <p className="font-semibold">Secure Stripe checkout</p>
+              <p className="mt-1">
+                All payments are processed on Stripe-hosted, PCI DSS Level 1 certified infrastructure. Card data never touches Resonance servers and
+                customer portals reuse the same secure session flows documented in our{' '}
+                <Link href="/docs/trust" className="underline hover:text-emerald-900">
+                  Trust Center
+                </Link>
+                .
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Pricing Cards */}

@@ -375,7 +375,7 @@ export default async function DashboardPage() {
               <h2 className="text-xl font-semibold text-neutral-50">Shortcuts</h2>
               <span className="text-xs text-neutral-500">Jump to common actions</span>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <Link
                 href="/dashboard/canary"
                 className="group rounded-xl border border-surface-800 bg-surface-900/70 p-4 transition hover:border-brand-400/40 hover:bg-surface-800"
@@ -416,6 +416,51 @@ export default async function DashboardPage() {
             </div>
           </div>
         )}
+
+        {/* Trust Center Snapshot */}
+        <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
+          <div className="mb-4 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-neutral-50">Trust & Reliability</h2>
+              <p className="text-sm text-neutral-400">
+                Security headers, signed agents, and update manifests are enforced by default. Use this panel to share our posture with your org.
+              </p>
+            </div>
+            <Link
+              href="/docs/trust"
+              className="inline-flex items-center rounded-lg border border-brand-400/40 bg-brand-500/10 px-4 py-2 text-sm font-semibold text-brand-100 transition hover:bg-brand-500/20"
+            >
+              View Trust Center →
+            </Link>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-xl border border-surface-700 bg-surface-900/70 p-4">
+              <h3 className="text-sm font-semibold text-neutral-100">Security Baseline</h3>
+              <p className="mt-2 text-xs text-neutral-400">
+                CSP locks execution to Resonance, Intercom, and Stripe; HSTS and frame-deny headers are applied globally.
+              </p>
+            </div>
+            <div className="rounded-xl border border-surface-700 bg-surface-900/70 p-4">
+              <h3 className="text-sm font-semibold text-neutral-100">Signed Agents</h3>
+              <p className="mt-2 text-xs text-neutral-400">
+                macOS builds notarised, Windows binaries Authenticode signed, Linux packages ship with post-install verification hooks.
+              </p>
+            </div>
+            <div className="rounded-xl border border-surface-700 bg-surface-900/70 p-4">
+              <h3 className="text-sm font-semibold text-neutral-100">Transparent Updates</h3>
+              <p className="mt-2 text-xs text-neutral-400">
+                Auto-update manifests publish SHA256 checksums and require operator confirmation before install.
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 rounded-lg border border-brand-400/20 bg-brand-500/10 p-3 text-xs text-brand-100">
+            Need to brief stakeholders? Export the status strip data or share the Trust Center link above—everything aligns with{' '}
+            <Link href="/docs/SECURITY_BASELINE.md" className="underline hover:text-brand-50">
+              our documented security baseline
+            </Link>
+            .
+          </div>
+        </div>
 
         {/* Metrics Section */}
         <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">

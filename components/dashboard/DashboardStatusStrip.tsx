@@ -7,6 +7,10 @@ interface DashboardStatusStripProps {
   agentUrl?: string | null;
   lastSampleAt: string | null;
   licenseLabel: string;
+  agentVersion?: string | null;
+  releaseChannel?: string | null;
+  buildCommit?: string | null;
+  environment?: string | null;
 }
 
 const StatusPill = ({
@@ -45,9 +49,25 @@ const StatusPill = ({
 };
 
 const agentTone = (agentUrl?: string | null) =>
-  agentUrl ? "good" : ("warn" as const);
+  agentUrl ? ("good" as const) : ("warn" as const);
 
-export default function DashboardStatusStrip({ agentUrl, lastSampleAt, licenseLabel }: DashboardStatusStripProps) {
+const channelTone = (channel?: string | null) => {
+  if (!channel) return "neutral" as const;
+  const normalized = channel.toLowerCase();
+  if (normalized === "adaptive" || normalized === "active") return "good" as const;
+  if (normalized === "shadow" || normalized === "canary") return "warn" as const;
+  return "neutral" as const;
+};
+
+export default function DashboardStatusStrip({
+  agentUrl,
+  lastSampleAt,
+  licenseLabel,
+  agentVersion,
+  releaseChannel,
+  buildCommit,
+  environment,
+}: DashboardStatusStripProps) {
   const lastSample = lastSampleAt
     ? formatDistanceToNow(new Date(lastSampleAt), { addSuffix: true })
     : "No samples yet";
@@ -55,11 +75,15 @@ export default function DashboardStatusStrip({ agentUrl, lastSampleAt, licenseLa
   const licenseTone =
     licenseLabel === "active" || licenseLabel === "pro" ? ("good" as const) : ("warn" as const);
 
+  const versionLabel = agentVersion ? (agentVersion.startsWith("v") ? agentVersion : `v${agentVersion}`) : "Unknown";
+  const commitLabel = buildCommit ? buildCommit.slice(0, 7) : null;
+  const environmentLabel = environment ? environment.charAt(0).toUpperCase() + environment.slice(1) : "Unknown";
+
   return (
     <div className="border-t border-b border-surface-800 bg-surface-900/75">
       <div className="flex flex-wrap items-center gap-3 px-6 py-3 text-xs text-neutral-300">
         <StatusPill
-          label="Agent"
+          label="Connectivity"
           value={agentUrl ? "Connected" : "Not configured"}
           tone={agentTone(agentUrl)}
           href="/docs"
@@ -75,6 +99,31 @@ export default function DashboardStatusStrip({ agentUrl, lastSampleAt, licenseLa
           tone={licenseTone}
           href="/resonance/pricing"
         />
+        <StatusPill
+          label="Version"
+          value={versionLabel}
+          tone={agentVersion ? "neutral" : "warn"}
+        />
+        {releaseChannel && (
+          <StatusPill
+            label="Channel"
+            value={releaseChannel}
+            tone={channelTone(releaseChannel)}
+          />
+        )}
+        <StatusPill
+          label="Environment"
+          value={environmentLabel}
+          tone={environment === "production" ? "good" : "neutral"}
+        />
+        {commitLabel && (
+          <StatusPill
+            label="Commit"
+            value={commitLabel}
+            tone="neutral"
+            href="/docs/trust"
+          />
+        )}
         <div className="ml-auto flex items-center gap-3 text-[11px] text-neutral-500">
           <span>Need help?</span>
           <Link href="/docs" className="text-brand-200 hover:underline">

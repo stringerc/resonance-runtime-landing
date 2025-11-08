@@ -21,6 +21,8 @@ interface ParsedMetrics {
     q99: number | null;
     q99_9: number | null;
   } | null;
+  version?: string | null;
+  releaseChannel?: string | null;
 }
 
 interface MetricsResponsePayload extends ParsedMetrics {
@@ -38,6 +40,9 @@ interface MetricsResponsePayload extends ParsedMetrics {
   latencyImprovement?: number | null;
   error?: string;
   mock?: boolean;
+  agentVersion?: string | null;
+  releaseChannel?: string | null;
+  buildCommit?: string | null;
 }
 
 type HealthResponse = {
@@ -203,6 +208,8 @@ export async function GET() {
             q99: toNumber(tailQ99Match?.[1]),
             q99_9: toNumber(tailQ99_9Match?.[1]),
           } : null,
+          version: null,
+          releaseChannel: null,
         };
       }
     } catch {
@@ -220,6 +227,27 @@ export async function GET() {
       metricsData?.modeValue ??
       toInteger(resonanceData.modeValue as string | number | null | undefined) ??
       (derivedMode === 'adaptive' ? 2 : 1);
+
+    const inferredVersion =
+      (typeof (resonanceData.version ?? resonanceData.agentVersion) === 'string'
+        ? (resonanceData.version ?? resonanceData.agentVersion)
+        : null) ??
+      metricsData?.version ??
+      process.env.RESONANCE_AGENT_VERSION ??
+      null;
+
+    const inferredChannel =
+      (typeof (resonanceData.releaseChannel ?? resonanceData.channel ?? resonanceData.mode) === 'string'
+        ? (resonanceData.releaseChannel ?? resonanceData.channel ?? (resonanceData.mode as string))
+        : null) ??
+      metricsData?.releaseChannel ??
+      process.env.RESONANCE_RELEASE_CHANNEL ??
+      derivedMode;
+
+    const inferredCommit =
+      typeof (resonanceData.commit ?? resonanceData.gitCommit ?? resonanceData.gitHash) === 'string'
+        ? ((resonanceData.commit ?? resonanceData.gitCommit ?? resonanceData.gitHash) as string)
+        : process.env.RESONANCE_AGENT_COMMIT ?? null;
 
     const response: MetricsResponsePayload = {
       R: metricsData?.R ?? toNumber(resonanceData.R as string | number | null | undefined) ?? 0.5,
@@ -249,6 +277,9 @@ export async function GET() {
       lambdaRes: metricsData?.lambdaRes ?? null,
       gpd: metricsData?.gpd ?? null,
       tailQuantiles: metricsData?.tailQuantiles ?? null,
+      agentVersion: inferredVersion,
+      releaseChannel: inferredChannel,
+      buildCommit: inferredCommit,
     };
 
     // Calculate latency improvement if we have latency data
@@ -280,6 +311,9 @@ export async function GET() {
       agentConnected: false,
       environment: isProduction ? 'production' : 'development',
       mock: true,
+      agentVersion: process.env.RESONANCE_AGENT_VERSION ?? null,
+      releaseChannel: process.env.RESONANCE_RELEASE_CHANNEL ?? 'adaptive',
+      buildCommit: process.env.RESONANCE_AGENT_COMMIT ?? null,
     }, {
       status: 200, // Still return 200 so UI can show mock data
       headers: {

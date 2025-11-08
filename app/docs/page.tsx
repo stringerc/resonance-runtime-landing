@@ -2,14 +2,19 @@ import Link from "next/link";
 
 const docLinks = [
   {
-    title: "Quickstart",
-    description: "Bring the Resonance Agent online with adaptive mode and sample feeds.",
+    title: "Quickstart Guide",
+    description: "Get your Resonance agent up and running in minutes.",
     href: "/docs/quickstart",
   },
   {
+    title: "Trust Center",
+    description: "Security baseline, signing guarantees, and incident escalation paths.",
+    href: "/docs/trust",
+  },
+  {
     title: "Resonance Calculus Dossier",
-    description: "Mathematical foundations and interpretation of R(t), coherence, and tail health.",
-    href: "/docs/resonance-calculus-dossier.md",
+    description: "In-depth mathematical and theoretical foundations of Resonance.",
+    href: "/docs/resonance-calculus-dossier.md", // Link to the local markdown file
   },
   {
     title: "Phase Intake",
@@ -25,6 +30,16 @@ const docLinks = [
     title: "Agent Operations",
     description: "Deploy, monitor, and update the Resonance Agent across environments.",
     href: "/docs/agent-operations",
+  },
+  {
+    title: "Security Baseline",
+    description: "Understand the security measures implemented in the platform.",
+    href: "/docs/SECURITY_BASELINE.md",
+  },
+  {
+    title: "Design Tokens",
+    description: "Understand the design tokens used across the platform.",
+    href: "/docs/DESIGN_TOKENS.md",
   },
 ];
 

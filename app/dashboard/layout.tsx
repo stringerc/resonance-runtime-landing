@@ -49,6 +49,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       licenseLabel={licenseLabel}
       lastSampleAt={lastMetricAt ? lastMetricAt.toISOString() : null}
       agentUrl={process.env.RESONANCE_AGENT_URL ?? null}
+      agentVersion={process.env.RESONANCE_AGENT_VERSION ?? null}
+      releaseChannel={process.env.RESONANCE_RELEASE_CHANNEL ?? undefined}
+      buildCommit={process.env.RESONANCE_AGENT_COMMIT ?? null}
+      environment={process.env.VERCEL ? "production" : process.env.NODE_ENV ?? "development"}
     >
       {children}
     </DashboardChrome>

@@ -19,6 +19,9 @@ interface Metrics {
   environment?: string;
   mock?: boolean;
   timestamp?: string;
+  agentVersion?: string | null;
+  releaseChannel?: string | null;
+  buildCommit?: string | null;
   // Resonance Calculus metrics (optional)
   coherenceScore?: number | null;
   tailHealthScore?: number | null;

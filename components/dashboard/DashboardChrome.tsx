@@ -17,6 +17,10 @@ interface DashboardChromeProps {
   licenseLabel: string;
   lastSampleAt: string | null;
   agentUrl?: string | null;
+  agentVersion?: string | null;
+  releaseChannel?: string | null;
+  buildCommit?: string | null;
+  environment?: string | null;
 }
 
 export default function DashboardChrome({
@@ -26,6 +30,10 @@ export default function DashboardChrome({
   licenseLabel,
   lastSampleAt,
   agentUrl,
+  agentVersion,
+  releaseChannel,
+  buildCommit,
+  environment,
 }: DashboardChromeProps) {
   const pathname = usePathname();
 
@@ -68,6 +76,10 @@ export default function DashboardChrome({
           agentUrl={agentUrl}
           lastSampleAt={lastSampleAt}
           licenseLabel={licenseLabel}
+          agentVersion={agentVersion}
+          releaseChannel={releaseChannel}
+          buildCommit={buildCommit}
+          environment={environment}
         />
       </header>
       <div className="flex min-h-[calc(100vh-4.5rem)]">
