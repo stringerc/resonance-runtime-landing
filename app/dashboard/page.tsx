@@ -222,27 +222,27 @@ export default async function DashboardPage() {
 
         {/* Quick Stats */}
         {license && license.status === "ACTIVE" && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Resonance Agent</h3>
-              <div className="text-2xl font-bold text-gray-900 mb-1">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-surface-800 bg-surface-900/70 p-6 shadow-brand-glow">
+              <h3 className="mb-2 text-sm font-semibold text-neutral-300">Resonance Agent</h3>
+              <div className="mb-1 text-2xl font-bold text-neutral-50">
                 <DashboardClient />
               </div>
-              <p className="text-xs text-gray-500">Real-time monitoring</p>
+              <p className="text-xs text-neutral-500">Real-time monitoring</p>
             </div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Features</h3>
-              <div className="text-lg font-semibold text-gray-900 mb-1">
+            <div className="rounded-2xl border border-surface-800 bg-surface-900/70 p-6 shadow-brand-glow">
+              <h3 className="mb-2 text-sm font-semibold text-neutral-300">Features</h3>
+              <div className="mb-1 text-lg font-semibold text-neutral-100">
                 Advanced Analytics
               </div>
-              <p className="text-xs text-gray-500">EVT, Network Calculus, Max-Plus</p>
+              <p className="text-xs text-neutral-500">EVT, Network Calculus, Max-Plus</p>
             </div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Data Retention</h3>
-              <div className="text-lg font-semibold text-gray-900 mb-1">
+            <div className="rounded-2xl border border-surface-800 bg-surface-900/70 p-6 shadow-brand-glow">
+              <h3 className="mb-2 text-sm font-semibold text-neutral-300">Data Retention</h3>
+              <div className="mb-1 text-lg font-semibold text-neutral-100">
                 90 Days
               </div>
-              <p className="text-xs text-gray-500">Historical data access</p>
+              <p className="text-xs text-neutral-500">Historical data access</p>
             </div>
           </div>
         )}
@@ -284,10 +284,10 @@ export default async function DashboardPage() {
 
         {/* Health Overview */}
         {insightMetrics && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">Health Overview</h2>
-              <span className="text-xs uppercase tracking-wide text-gray-500">
+          <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-neutral-50">Health Overview</h2>
+              <span className="text-xs uppercase tracking-wide text-neutral-500">
                 Last sample{" "}
                 {latestMetric?.timestamp
                   ? new Date(latestMetric.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
@@ -353,47 +353,50 @@ export default async function DashboardPage() {
 
         {/* Quick Actions */}
         {license && license.status === "ACTIVE" && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-neutral-50">Shortcuts</h2>
+              <span className="text-xs text-neutral-500">Jump to common actions</span>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <Link
                 href="/dashboard/canary"
-                className="p-4 border border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition"
+                className="group rounded-xl border border-surface-800 bg-surface-900/70 p-4 transition hover:border-brand-400/40 hover:bg-surface-800"
               >
-                <div className="font-semibold text-gray-900 mb-1">View Monitoring</div>
-                <div className="text-sm text-gray-600">Real-time Resonance metrics and AI insights</div>
+                <div className="mb-1 font-semibold text-neutral-100 group-hover:text-brand-100">View Monitoring</div>
+                <div className="text-sm text-neutral-400">Real-time Resonance metrics and AI insights</div>
               </Link>
               <Link
                 href="/dashboard/resonance-calculus"
-                className="p-4 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition"
+                className="group rounded-xl border border-surface-800 bg-surface-900/70 p-4 transition hover:border-brand-400/40 hover:bg-surface-800"
               >
-                <div className="font-semibold text-gray-900 mb-1">Resonance Calculus</div>
-                <div className="text-sm text-gray-600">Component breakdown, tail analysis, and timing metrics</div>
+                <div className="mb-1 font-semibold text-neutral-100 group-hover:text-brand-100">Resonance Calculus</div>
+                <div className="text-sm text-neutral-400">Component breakdown, tail analysis, and timing metrics</div>
               </Link>
               <Link
                 href="/resonance/pricing"
-                className="p-4 border border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition"
+                className="group rounded-xl border border-surface-800 bg-surface-900/70 p-4 transition hover:border-brand-400/40 hover:bg-surface-800"
               >
-                <div className="font-semibold text-gray-900 mb-1">Manage Subscription</div>
-                <div className="text-sm text-gray-600">Upgrade, downgrade, or cancel your plan</div>
+                <div className="mb-1 font-semibold text-neutral-100 group-hover:text-brand-100">Manage Subscription</div>
+                <div className="text-sm text-neutral-400">Upgrade, downgrade, or cancel your plan</div>
               </Link>
             </div>
           </div>
         )}
 
         {/* Metrics Section */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Recent Metrics</h2>
+        <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-neutral-50">Recent Metrics</h2>
             {resonanceHistory.length > 0 && (
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-neutral-500">
                 Showing last {resonanceHistory.length} samples
               </span>
             )}
           </div>
           {resonanceHistory.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
                 {recentMetrics.map((metric) => {
                   const record = isObjectRecord(metric.data) ? metric.data : {};
                   const rValue = getNumericField(record, "R");
@@ -405,14 +408,14 @@ export default async function DashboardPage() {
                   const p99Latency = getNumericField(record, "p99Latency");
 
                   return (
-                    <div key={metric.id} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                    <div key={metric.id} className="rounded-xl border border-surface-800 bg-surface-900/70 p-4">
+                      <div className="mb-3 flex items-center justify-between text-sm text-neutral-400">
                         <span>{new Date(metric.timestamp).toLocaleString()}</span>
-                        <span className="font-medium text-gray-700">
+                        <span className="font-medium text-neutral-200">
                           R(t): {rValue !== null ? rValue.toFixed(3) : "—"}
                         </span>
                       </div>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-600">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-neutral-300">
                         <MetricValue label="Entropy" value={spectralEntropy} formatter={(value) => formatDecimal(value, 3)} />
                         <MetricValue label="Coherence" value={coherenceScore} formatter={formatPercent} />
                         <MetricValue label="Tail Health" value={tailHealth} formatter={formatPercent} />
@@ -424,19 +427,19 @@ export default async function DashboardPage() {
                   );
                 })}
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-neutral-500">
                 Historical samples are stored as part of your Resonance history. For deeper analysis open the Canary or Resonance Calculus dashboards.
               </div>
             </>
           ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">
+            <div className="py-8 text-center">
+              <p className="mb-4 text-neutral-400">
                 No metrics yet. Start monitoring to see data here.
               </p>
               {license && license.status === "ACTIVE" && (
                 <Link
                   href="/dashboard/canary"
-                  className="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm"
+                  className="inline-block rounded-lg bg-brand-gradient px-4 py-2 text-sm font-semibold text-neutral-900 transition"
                 >
                   Go to Monitoring Dashboard
                 </Link>
@@ -494,20 +497,20 @@ function OverviewCard({
 }: OverviewCardProps) {
   const displayValue = formatter(value);
   return (
-    <div className="border border-gray-200 rounded-lg p-4 shadow-sm bg-white">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
+    <div className="rounded-xl border border-surface-800 bg-surface-900/70 p-4 shadow-brand-glow">
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-neutral-200">{title}</h3>
       </div>
       <div className="flex items-end justify-between gap-4">
         <div>
-          <div className="text-2xl font-bold text-gray-900">{displayValue}</div>
-          {helperText && <p className="text-xs text-gray-500 mt-1">{helperText}</p>}
+          <div className="text-2xl font-bold text-neutral-50">{displayValue}</div>
+          {helperText && <p className="mt-1 text-xs text-neutral-500">{helperText}</p>}
         </div>
         <div className="flex-1">
           {series.length > 1 ? (
             <Sparkline series={series} color={color} />
           ) : (
-            <div className="text-xs text-gray-400 text-right">{emptyLabel}</div>
+            <div className="text-right text-xs text-neutral-500">{emptyLabel}</div>
           )}
         </div>
       </div>
