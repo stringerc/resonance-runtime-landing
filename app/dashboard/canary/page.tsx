@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
 import ResonanceInsights from "@/components/ResonanceInsights";
 
 interface Metrics {
@@ -141,14 +140,18 @@ export default function CanaryDashboard() {
     
     return filtered;
   };
-  const getModeColor = (mode: string) => {
-    switch (mode) {
-      case 'adaptive': return 'text-blue-600';
-      case 'active': return 'text-green-600';
-      case 'shadow': return 'text-yellow-600';
-      default: return 'text-gray-600';
-    }
-  };
+const getModeColor = (mode: string) => {
+  switch (mode) {
+    case 'adaptive':
+      return 'text-brand-200';
+    case 'active':
+      return 'text-emerald-200';
+    case 'shadow':
+      return 'text-amber-300';
+    default:
+      return 'text-neutral-300';
+  }
+};
 
   const getBandStatus = (r: number) => {
     if (r >= 0.35 && r <= 0.65) return { status: 'optimal', color: 'text-green-600' };
@@ -158,10 +161,10 @@ export default function CanaryDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading metrics...</p>
+      <div className="flex min-h-screen items-center justify-center bg-surface-900">
+        <div className="text-center text-neutral-400">
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-brand-400"></div>
+          <p>Loading metrics...</p>
         </div>
       </div>
     );
@@ -169,12 +172,12 @@ export default function CanaryDashboard() {
 
   if (!metrics) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-surface-900">
         <div className="text-center">
-          <p className="text-red-600 mb-4">Failed to load metrics</p>
+          <p className="mb-4 text-rose-400">Failed to load metrics</p>
           <button
             onClick={fetchMetrics}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+            className="rounded-lg bg-brand-gradient px-4 py-2 text-sm font-semibold text-neutral-900 transition hover:opacity-90"
           >
             Retry
           </button>
@@ -187,51 +190,26 @@ export default function CanaryDashboard() {
   const modeLabel = metrics.mode || 'adaptive';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Navigation Bar */}
-      <nav className="border-b border-gray-200 bg-white sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-primary-600">
-              Resonance Calculus
-            </Link>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/dashboard/resonance-calculus"
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
-              >
-                Resonance Calculus →
-              </Link>
-              <Link
-                href="/dashboard"
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium flex items-center gap-2"
-              >
-                ← Dashboard
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="flex-1">
+    <div className="px-6 py-8">
+      <div className="mx-auto max-w-7xl space-y-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+          <div className="flex-1 space-y-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Canary Mode Monitoring</h1>
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-            <span>
-              Elapsed: <strong>{elapsedHours.toFixed(1)} hours</strong> / 24 hours
+        <div>
+          <h1 className="text-3xl font-bold text-neutral-50">Canary Mode Monitoring</h1>
+          <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-neutral-400">
+            <span className="text-neutral-300">
+              Elapsed: <span className="font-semibold text-neutral-100">{elapsedHours.toFixed(1)} hours</span> / 24 hours
             </span>
-            <span className="text-primary-600">
+            <span className="text-brand-200">
               Mode:{' '}
-              <strong className={getModeColor(modeLabel)}>
+              <span className={`${getModeColor(modeLabel)} font-semibold`}>
                 {modeLabel.charAt(0).toUpperCase() + modeLabel.slice(1)}
-              </strong>
+              </span>
             </span>
             <a
               href="#metric-glossary"
-              className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700"
+              className="inline-flex items-center gap-1 text-brand-200 hover:text-brand-100"
             >
               Need guidance? <span className="font-semibold">Open live insights →</span>
             </a>
@@ -239,15 +217,15 @@ export default function CanaryDashboard() {
         </div>
 
         {/* Main Graph */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Global Resonance Overview</h2>
+        <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-neutral-50">Global Resonance Overview</h2>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Time Range:</span>
+              <span className="text-sm text-neutral-400">Time Range:</span>
               <select
                 value={timeInterval}
                 onChange={(e) => setTimeInterval(e.target.value as TimeInterval)}
-                className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                className="rounded-lg border border-surface-700 bg-surface-900 px-3 py-1 text-sm text-neutral-200 focus:outline-none focus:ring-2 focus:ring-brand-400"
               >
                 <option value="realtime">Real-time</option>
                 <option value="hourly">Last Hour</option>
@@ -258,7 +236,7 @@ export default function CanaryDashboard() {
               </select>
             </div>
           </div>
-          <div className="relative h-64 bg-gray-50 rounded-lg p-4">
+          <div className="relative h-64 rounded-xl border border-surface-800 bg-surface-900/70 p-4">
             <svg className="w-full h-full" viewBox="0 0 800 240" preserveAspectRatio="none">
               {/* Resonance Band Zones */}
               {/* Low zone (< 0.35) */}
@@ -393,15 +371,18 @@ export default function CanaryDashboard() {
               ))}
             </svg>
           </div>
-          <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
-            <div>
+          <div className="mt-4 flex items-center justify-between text-sm text-neutral-400">
+            <div className="flex flex-wrap items-center gap-2">
               <span>Target Band: [0.35, 0.65]</span>
-              <span className="mx-2">|</span>
-              <span>Current: {metrics.R.toFixed(3)}</span>
-              <span className="mx-2">|</span>
-              <span>Status: <span className={bandStatus.color}>{bandStatus.status.toUpperCase()}</span></span>
+              <span className="mx-1 text-neutral-600">|</span>
+              <span>Current: <span className="text-neutral-100">{metrics.R.toFixed(3)}</span></span>
+              <span className="mx-1 text-neutral-600">|</span>
+              <span>
+                Status:{' '}
+                <span className={`${bandStatus.color} font-semibold`}>{bandStatus.status.toUpperCase()}</span>
+              </span>
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-neutral-500">
               {getFilteredHistory().length} data points shown ({history.length} total stored)
             </div>
           </div>
@@ -409,29 +390,29 @@ export default function CanaryDashboard() {
 
         {/* Resonance Components Panel */}
         {(metrics.coherenceScore !== null && metrics.coherenceScore !== undefined) ||
-         (metrics.tailHealthScore !== null && metrics.tailHealthScore !== undefined) ||
-         (metrics.timingScore !== null && metrics.timingScore !== undefined) ||
-         (metrics.lambdaRes !== null && metrics.lambdaRes !== undefined) ? (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Resonance Components</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          (metrics.tailHealthScore !== null && metrics.tailHealthScore !== undefined) ||
+          (metrics.timingScore !== null && metrics.timingScore !== undefined) ||
+          (metrics.lambdaRes !== null && metrics.lambdaRes !== undefined) ? (
+          <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
+            <h2 className="mb-4 text-xl font-semibold text-neutral-50">Resonance Components</h2>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Coherence Score */}
               {metrics.coherenceScore !== null && metrics.coherenceScore !== undefined && (
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                  <h3 className="text-sm font-semibold text-blue-900 mb-2">Coherence Score</h3>
+                <div className="rounded-xl border border-surface-700 bg-surface-900/70 p-4">
+                  <h3 className="mb-2 text-sm font-semibold text-neutral-200">Coherence Score</h3>
                   <div className="flex items-baseline gap-2">
-                    <div className="text-3xl font-bold text-blue-700">
+                    <div className="text-3xl font-bold text-brand-200">
                       {(metrics.coherenceScore * 100).toFixed(0)}
                     </div>
-                    <span className="text-sm text-blue-600">%</span>
+                    <span className="text-sm text-neutral-400">%</span>
                   </div>
-                  <div className="mt-2 h-2 bg-blue-200 rounded-full overflow-hidden">
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-800">
                     <div
-                      className="h-full bg-blue-600 transition-all duration-300"
+                      className="h-full rounded-full bg-brand-400 transition-all duration-300"
                       style={{ width: `${metrics.coherenceScore * 100}%` }}
                     />
                   </div>
-                  <div className="text-xs text-blue-700 mt-1">
+                  <div className="mt-1 text-xs text-neutral-400">
                     {metrics.coherenceScore >= 0.5 ? '✓ Optimal' : '⚠ Low'}
                   </div>
                 </div>
@@ -439,21 +420,21 @@ export default function CanaryDashboard() {
 
               {/* Tail Health Score */}
               {metrics.tailHealthScore !== null && metrics.tailHealthScore !== undefined && (
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                  <h3 className="text-sm font-semibold text-green-900 mb-2">Tail Health Score</h3>
+                <div className="rounded-xl border border-surface-700 bg-surface-900/70 p-4">
+                  <h3 className="mb-2 text-sm font-semibold text-neutral-200">Tail Health Score</h3>
                   <div className="flex items-baseline gap-2">
-                    <div className="text-3xl font-bold text-green-700">
+                    <div className="text-3xl font-bold text-emerald-300">
                       {(metrics.tailHealthScore * 100).toFixed(0)}
                     </div>
-                    <span className="text-sm text-green-600">%</span>
+                    <span className="text-sm text-neutral-400">%</span>
                   </div>
-                  <div className="mt-2 h-2 bg-green-200 rounded-full overflow-hidden">
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-800">
                     <div
-                      className="h-full bg-green-600 transition-all duration-300"
+                      className="h-full rounded-full bg-emerald-400 transition-all duration-300"
                       style={{ width: `${metrics.tailHealthScore * 100}%` }}
                     />
                   </div>
-                  <div className="text-xs text-green-700 mt-1">
+                  <div className="mt-1 text-xs text-neutral-400">
                     {metrics.tailHealthScore >= 0.5 ? '✓ Healthy' : '⚠ Risk'}
                   </div>
                 </div>
@@ -461,21 +442,21 @@ export default function CanaryDashboard() {
 
               {/* Timing Score */}
               {metrics.timingScore !== null && metrics.timingScore !== undefined && (
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-                  <h3 className="text-sm font-semibold text-purple-900 mb-2">Timing Score</h3>
+                <div className="rounded-xl border border-surface-700 bg-surface-900/70 p-4">
+                  <h3 className="mb-2 text-sm font-semibold text-neutral-200">Timing Score</h3>
                   <div className="flex items-baseline gap-2">
-                    <div className="text-3xl font-bold text-purple-700">
+                    <div className="text-3xl font-bold text-fuchsia-300">
                       {(metrics.timingScore * 100).toFixed(0)}
                     </div>
-                    <span className="text-sm text-purple-600">%</span>
+                    <span className="text-sm text-neutral-400">%</span>
                   </div>
-                  <div className="mt-2 h-2 bg-purple-200 rounded-full overflow-hidden">
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-800">
                     <div
-                      className="h-full bg-purple-600 transition-all duration-300"
+                      className="h-full rounded-full bg-fuchsia-400 transition-all duration-300"
                       style={{ width: `${metrics.timingScore * 100}%` }}
                     />
                   </div>
-                  <div className="text-xs text-purple-700 mt-1">
+                  <div className="mt-1 text-xs text-neutral-400">
                     {metrics.timingScore >= 0.5 ? '✓ Synchronized' : '⚠ Delayed'}
                   </div>
                 </div>
@@ -483,13 +464,13 @@ export default function CanaryDashboard() {
 
               {/* Max-Plus Eigenvalue */}
               {metrics.lambdaRes !== null && metrics.lambdaRes !== undefined && (
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
-                  <h3 className="text-sm font-semibold text-orange-900 mb-2">Max-Plus λ_res</h3>
-                  <div className="text-2xl font-bold text-orange-700">
+                <div className="rounded-xl border border-surface-700 bg-surface-900/70 p-4">
+                  <h3 className="mb-2 text-sm font-semibold text-neutral-200">Max-Plus λ_res</h3>
+                  <div className="text-2xl font-bold text-amber-300">
                     {metrics.lambdaRes.toFixed(3)}
                   </div>
-                  <div className="text-xs text-orange-600 mt-1">Cycle Time</div>
-                  <div className="text-xs text-orange-700 mt-1">
+                  <div className="mt-1 text-xs text-neutral-400">Cycle Time</div>
+                  <div className="mt-1 text-xs text-neutral-400">
                     {metrics.lambdaRes < 10 ? '✓ Fast' : metrics.lambdaRes < 50 ? '⚠ Moderate' : '⚠ Slow'}
                   </div>
                 </div>
@@ -499,58 +480,58 @@ export default function CanaryDashboard() {
         ) : null}
 
         {/* Supporting Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Latency P99</h3>
-            <div className="text-2xl font-bold text-gray-900">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="rounded-xl border border-surface-800 bg-surface-900/70 p-6 shadow-brand-sm">
+            <h3 className="mb-2 text-sm font-semibold text-neutral-200">Latency P99</h3>
+            <div className="text-2xl font-bold text-neutral-50">
               {metrics.p99Latency ? `${Math.round(metrics.p99Latency)}ms` : 'N/A'}
             </div>
             {metrics.p99Latency ? (
               metrics.latencyImprovement ? (
-                <div className="text-sm text-green-600 mt-1">
+                <div className="mt-1 text-sm text-emerald-300">
                   ↓ {metrics.latencyImprovement}% (1h)
                 </div>
               ) : (
-                <div className="text-sm text-gray-500 mt-1">
+                <div className="mt-1 text-sm text-neutral-400">
                   {metrics.p50Latency ? `P50: ${Math.round(metrics.p50Latency)}ms` : 'Monitoring...'}
                 </div>
               )
             ) : (
-              <div className="text-sm text-gray-500 mt-1">
+              <div className="mt-1 text-sm text-neutral-400">
                 {metrics.mock ? 'Mock data - no latency' : metrics.error ? 'Agent not accessible' : 'Waiting for data...'}
               </div>
             )}
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Spectral Entropy</h3>
-            <div className="text-2xl font-bold text-gray-900">
+          <div className="rounded-xl border border-surface-800 bg-surface-900/70 p-6 shadow-brand-sm">
+            <h3 className="mb-2 text-sm font-semibold text-neutral-200">Spectral Entropy</h3>
+            <div className="text-2xl font-bold text-neutral-50">
               {metrics.spectralEntropy.toFixed(2)}
             </div>
-            <div className="text-sm text-green-600 mt-1">
+            <div className="mt-1 text-sm text-neutral-400">
               {metrics.spectralEntropy >= 0.4 && metrics.spectralEntropy <= 0.6 ? '✓ Balanced' : '⚠ Monitor'}
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Controller Mode</h3>
+          <div className="rounded-xl border border-surface-800 bg-surface-900/70 p-6 shadow-brand-sm">
+            <h3 className="mb-2 text-sm font-semibold text-neutral-200">Controller Status</h3>
             <div className={`text-2xl font-bold ${getModeColor(modeLabel)}`}>
               {modeLabel.charAt(0).toUpperCase() + modeLabel.slice(1)}
             </div>
-            <div className="text-sm text-gray-600 mt-1">
-              K(t) = {metrics.K.toFixed(3)}
+            <div className="mt-1 text-sm text-neutral-400">
+              K(t) = <span className="text-neutral-100">{metrics.K.toFixed(3)}</span>
             </div>
           </div>
         </div>
 
         {/* Tail Health Details (Expandable) */}
         {metrics.tailHealthScore !== null && metrics.tailHealthScore !== undefined && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Tail Health Analysis</h2>
+          <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-neutral-50">Tail Health Analysis</h2>
               <button
                 onClick={() => setTailHealthExpanded(!tailHealthExpanded)}
-                className="px-4 py-2 text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition"
+                className="rounded-lg px-4 py-2 text-sm text-brand-200 transition hover:bg-surface-800 hover:text-brand-100"
               >
                 {tailHealthExpanded ? '▼ Hide Details' : '▶ Show Details'}
               </button>
@@ -560,13 +541,13 @@ export default function CanaryDashboard() {
             <div className="mb-4">
               <div className="flex items-center gap-4">
                 <div>
-                  <div className="text-sm text-gray-600 mb-1">Tail Health Score</div>
-                  <div className="text-3xl font-bold text-gray-900">
+                  <div className="mb-1 text-sm text-neutral-400">Tail Health Score</div>
+                  <div className="text-3xl font-bold text-neutral-50">
                     {(metrics.tailHealthScore * 100).toFixed(1)}%
                   </div>
                 </div>
                 <div className="flex-1">
-                  <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-4 overflow-hidden rounded-full bg-surface-800">
                     <div
                       className={`h-full transition-all duration-300 ${
                         metrics.tailHealthScore >= 0.7 ? 'bg-green-600' :
@@ -593,33 +574,33 @@ export default function CanaryDashboard() {
 
             {/* Expandable Details */}
             {tailHealthExpanded && (
-              <div className="border-t border-gray-200 pt-4 space-y-4">
+              <div className="space-y-4 border-t border-surface-800 pt-4">
                 {/* GPD Parameters */}
                 {metrics.gpd && (metrics.gpd.xi !== null || metrics.gpd.sigma !== null || metrics.gpd.threshold !== null) && (
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-700 mb-2">GPD Parameters</h3>
+                    <h3 className="mb-2 text-sm font-semibold text-neutral-200">GPD Parameters</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {metrics.gpd.xi !== null && (
                         <div className="bg-gray-50 rounded-lg p-3">
-                          <div className="text-xs text-gray-600 mb-1">Shape Parameter (ξ)</div>
-                          <div className="text-lg font-bold text-gray-900">{metrics.gpd.xi.toFixed(4)}</div>
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="mb-1 text-xs text-neutral-400">Shape Parameter (ξ)</div>
+                          <div className="text-lg font-bold text-neutral-50">{metrics.gpd.xi.toFixed(4)}</div>
+                          <div className="mt-1 text-xs text-neutral-500">
                             {metrics.gpd.xi > 0 ? 'Heavy tail' : metrics.gpd.xi < 0 ? 'Light tail' : 'Exponential'}
                           </div>
                         </div>
                       )}
                       {metrics.gpd.sigma !== null && (
                         <div className="bg-gray-50 rounded-lg p-3">
-                          <div className="text-xs text-gray-600 mb-1">Scale Parameter (σ)</div>
-                          <div className="text-lg font-bold text-gray-900">{metrics.gpd.sigma.toFixed(2)}</div>
-                          <div className="text-xs text-gray-500 mt-1">Scale of tail distribution</div>
+                          <div className="mb-1 text-xs text-neutral-400">Scale Parameter (σ)</div>
+                          <div className="text-lg font-bold text-neutral-50">{metrics.gpd.sigma.toFixed(2)}</div>
+                          <div className="mt-1 text-xs text-neutral-500">Scale of tail distribution</div>
                         </div>
                       )}
                       {metrics.gpd.threshold !== null && (
                         <div className="bg-gray-50 rounded-lg p-3">
-                          <div className="text-xs text-gray-600 mb-1">Threshold (u)</div>
-                          <div className="text-lg font-bold text-gray-900">{metrics.gpd.threshold.toFixed(2)}</div>
-                          <div className="text-xs text-gray-500 mt-1">Tail modeling start point</div>
+                          <div className="mb-1 text-xs text-neutral-400">Threshold (u)</div>
+                          <div className="text-lg font-bold text-neutral-50">{metrics.gpd.threshold.toFixed(2)}</div>
+                          <div className="mt-1 text-xs text-neutral-500">Tail modeling start point</div>
                         </div>
                       )}
                     </div>
@@ -629,20 +610,20 @@ export default function CanaryDashboard() {
                 {/* Tail Quantiles */}
                 {metrics.tailQuantiles && (metrics.tailQuantiles.q99 !== null || metrics.tailQuantiles.q99_9 !== null) && (
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Tail Quantiles</h3>
+                    <h3 className="mb-2 text-sm font-semibold text-neutral-200">Tail Quantiles</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {metrics.tailQuantiles.q99 !== null && (
                         <div className="bg-gray-50 rounded-lg p-3">
-                          <div className="text-xs text-gray-600 mb-1">Q99 (99th Percentile)</div>
-                          <div className="text-lg font-bold text-gray-900">{metrics.tailQuantiles.q99.toFixed(2)}</div>
-                          <div className="text-xs text-gray-500 mt-1">99% of values below this</div>
+                          <div className="mb-1 text-xs text-neutral-400">Q99 (99th Percentile)</div>
+                          <div className="text-lg font-bold text-neutral-50">{metrics.tailQuantiles.q99.toFixed(2)}</div>
+                          <div className="mt-1 text-xs text-neutral-500">99% of values below this</div>
                         </div>
                       )}
                       {metrics.tailQuantiles.q99_9 !== null && (
                         <div className="bg-gray-50 rounded-lg p-3">
-                          <div className="text-xs text-gray-600 mb-1">Q99.9 (99.9th Percentile)</div>
-                          <div className="text-lg font-bold text-gray-900">{metrics.tailQuantiles.q99_9.toFixed(2)}</div>
-                          <div className="text-xs text-gray-500 mt-1">99.9% of values below this</div>
+                          <div className="mb-1 text-xs text-neutral-400">Q99.9 (99.9th Percentile)</div>
+                          <div className="text-lg font-bold text-neutral-50">{metrics.tailQuantiles.q99_9.toFixed(2)}</div>
+                          <div className="mt-1 text-xs text-neutral-500">99.9% of values below this</div>
                         </div>
                       )}
                     </div>
@@ -651,7 +632,7 @@ export default function CanaryDashboard() {
 
                 {(!metrics.gpd || (metrics.gpd.xi === null && metrics.gpd.sigma === null && metrics.gpd.threshold === null)) &&
                  (!metrics.tailQuantiles || (metrics.tailQuantiles.q99 === null && metrics.tailQuantiles.q99_9 === null)) && (
-                  <div className="text-sm text-gray-500 italic">
+                  <div className="text-sm italic text-neutral-500">
                     Detailed GPD parameters and quantiles will be available once sufficient tail data is collected.
                   </div>
                 )}
@@ -666,7 +647,7 @@ export default function CanaryDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Agent Status</span>
+                <span className="text-sm text-neutral-400">Agent Status</span>
                 <span className={`px-2 py-1 rounded text-xs font-semibold ${
                   metrics.agentConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                 }`}>
@@ -674,14 +655,14 @@ export default function CanaryDashboard() {
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Environment</span>
-                <span className="text-sm font-medium text-gray-900 capitalize">
+                <span className="text-sm text-neutral-400">Environment</span>
+                <span className="text-sm font-medium text-neutral-100 capitalize">
                   {metrics.environment || 'Unknown'}
                 </span>
               </div>
               {metrics.mock && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Data Source</span>
+                <span className="text-sm text-neutral-400">Data Source</span>
                   <span className="px-2 py-1 rounded text-xs font-semibold bg-yellow-100 text-yellow-800">
                     ⚠️ Mock Data
                   </span>
@@ -690,38 +671,38 @@ export default function CanaryDashboard() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Agent URL</span>
-                <span className="text-xs font-mono text-gray-700 truncate max-w-[200px]" title={metrics.agentUrl}>
+                <span className="text-sm text-neutral-400">Agent URL</span>
+                <span className="max-w-[200px] truncate text-xs font-mono text-neutral-300" title={metrics.agentUrl}>
                   {metrics.agentUrl || 'Not configured'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Last Update</span>
-                <span className="text-xs text-gray-700">
+                <span className="text-sm text-neutral-400">Last Update</span>
+                <span className="text-xs text-neutral-300">
                   {metrics.timestamp ? new Date(metrics.timestamp).toLocaleTimeString() : 'Never'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Update Interval</span>
-                <span className="text-xs text-gray-700">5 seconds</span>
+                <span className="text-sm text-neutral-400">Update Interval</span>
+                <span className="text-xs text-neutral-300">5 seconds</span>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Data Points Collected</span>
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm text-neutral-400">Data Points Collected</span>
+                <span className="text-sm font-medium text-neutral-100">
                   {history.length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Data Retention</span>
-                <span className="text-xs text-gray-700">
+                <span className="text-sm text-neutral-400">Data Retention</span>
+                <span className="text-xs text-neutral-300">
                   {Math.round((history.length * 5) / 60)} minutes
                 </span>
               </div>
               {metrics.error && (
                 <div className="flex items-start justify-between">
-                  <span className="text-sm text-gray-600">Error</span>
+                <span className="text-sm text-neutral-400">Error</span>
                   <span className="text-xs text-red-600 max-w-[200px] text-right">
                     {metrics.error}
                   </span>
@@ -732,29 +713,31 @@ export default function CanaryDashboard() {
         </div>
 
         {/* Progress Bar */}
-        <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Canary Validation Progress</h3>
-          <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
+        <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
+          <h3 className="mb-2 text-sm font-semibold text-neutral-200">Canary Validation Progress</h3>
+          <div className="mb-2 h-4 w-full overflow-hidden rounded-full bg-surface-800">
             <div
-              className="bg-primary-600 h-4 rounded-full transition-all duration-300"
+              className="h-full rounded-full bg-brand-400 transition-all duration-300"
               style={{ width: `${Math.min((elapsedHours / 24) * 100, 100)}%` }}
             ></div>
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-neutral-400">
             {elapsedHours < 24 ? (
               <span>{elapsedHours.toFixed(1)} / 24 hours ({(elapsedHours / 24 * 100).toFixed(1)}%)</span>
             ) : (
-              <span className="text-green-600 font-semibold">✅ 24 hours complete! Ready for review.</span>
+              <span className="font-semibold text-emerald-300">✅ 24 hours complete! Ready for review.</span>
             )}
           </div>
         </div>
           </div>
-          <ResonanceInsights
-            metrics={metrics}
-            band={bandCompliance}
-            latestSampleTime={latestSampleTime}
-            latencyPresent={Boolean(metrics?.p99Latency)}
-          />
+          <aside className="lg:w-80 xl:w-96 lg:pl-4">
+            <ResonanceInsights
+              metrics={metrics}
+              band={bandCompliance}
+              latestSampleTime={latestSampleTime}
+              latencyPresent={Boolean(metrics?.p99Latency)}
+            />
+          </aside>
         </div>
       </div>
     </div>

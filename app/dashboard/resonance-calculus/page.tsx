@@ -244,15 +244,15 @@ export default function ResonanceCalculusPage() {
         </div>
 
         {/* Resonance Band Visualization (Patent Figure 2) */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Global Resonance R(t) with Band Zones</h2>
+        <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-neutral-50">Global Resonance R(t) with Band Zones</h2>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Time Range:</span>
+              <span className="text-sm text-neutral-400">Time Range:</span>
               <select
                 value={timeInterval}
                 onChange={(e) => setTimeInterval(e.target.value as TimeInterval)}
-                className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                className="rounded-lg border border-surface-700 bg-surface-900 px-3 py-1 text-sm text-neutral-200 focus:outline-none focus:ring-2 focus:ring-brand-400"
               >
                 <option value="realtime">Real-time</option>
                 <option value="hourly">Last Hour</option>
@@ -425,15 +425,15 @@ export default function ResonanceCalculusPage() {
 
         {/* Component Breakdown View (Patent Figure 3) */}
         {hasCalculus && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Component Breakdown</h2>
+          <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-neutral-50">Component Breakdown</h2>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">View:</span>
+                <span className="text-sm text-neutral-400">View:</span>
                 <select
                   value={selectedComponent}
                   onChange={handleComponentChange}
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                  className="rounded-lg border border-surface-700 bg-surface-900 px-3 py-1 text-sm text-neutral-200 focus:outline-none focus:ring-2 focus:ring-brand-400"
                 >
                   <option value="all">All Components</option>
                   <option value="coherence">Coherence Score</option>
@@ -443,7 +443,7 @@ export default function ResonanceCalculusPage() {
               </div>
             </div>
             
-            <div className="relative h-64 bg-gray-50 rounded-lg p-4">
+            <div className="relative h-64 rounded-xl border border-surface-800 bg-surface-900/70 p-4">
               <svg className="w-full h-full" viewBox="0 0 1000 240" preserveAspectRatio="none">
                 {/* Grid */}
                 {[0, 0.25, 0.5, 0.75, 1.0].map((val) => (

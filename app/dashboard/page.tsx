@@ -358,7 +358,7 @@ export default async function DashboardPage() {
               <h2 className="text-xl font-semibold text-neutral-50">Shortcuts</h2>
               <span className="text-xs text-neutral-500">Jump to common actions</span>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
               <Link
                 href="/dashboard/canary"
                 className="group rounded-xl border border-surface-800 bg-surface-900/70 p-4 transition hover:border-brand-400/40 hover:bg-surface-800"
@@ -379,6 +379,22 @@ export default async function DashboardPage() {
               >
                 <div className="mb-1 font-semibold text-neutral-100 group-hover:text-brand-100">Manage Subscription</div>
                 <div className="text-sm text-neutral-400">Upgrade, downgrade, or cancel your plan</div>
+              </Link>
+              <Link
+                href="/docs"
+                className="group rounded-xl border border-surface-800 bg-surface-900/70 p-4 transition hover:border-brand-400/40 hover:bg-surface-800"
+              >
+                <div className="mb-1 font-semibold text-neutral-100 group-hover:text-brand-100">Docs & Field Guide</div>
+                <div className="text-sm text-neutral-400">Integration steps, calculus dossier, and operations playbooks</div>
+              </Link>
+              <Link
+                href="https://github.com/stringerc/syncscriptE/releases"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group rounded-xl border border-surface-800 bg-surface-900/70 p-4 transition hover:border-brand-400/40 hover:bg-surface-800"
+              >
+                <div className="mb-1 font-semibold text-neutral-100 group-hover:text-brand-100">Download Agents</div>
+                <div className="text-sm text-neutral-400">Latest desktop binaries, manifests, and release notes</div>
               </Link>
             </div>
           </div>
