@@ -5,6 +5,8 @@ import { prisma } from "@/lib/db";
 import { verifyPassword } from "@/lib/auth/password";
 import { checkAccountLockout, resetFailedLogins, recordFailedLogin } from "@/lib/auth/rate-limit";
 
+const isProduction = process.env.NODE_ENV === "production";
+const secureCookiePrefix = isProduction ? "__Secure-" : "";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -68,6 +70,63 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+  useSecureCookies: isProduction,
+  cookies: {
+    sessionToken: {
+      name: `${secureCookiePrefix}next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: isProduction,
+      },
+    },
+    csrfToken: {
+      name: `${secureCookiePrefix}next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: isProduction,
+      },
+    },
+    callbackUrl: {
+      name: `${secureCookiePrefix}next-auth.callback-url`,
+      options: {
+        httpOnly: false,
+        sameSite: "lax",
+        path: "/",
+        secure: isProduction,
+      },
+    },
+    pkceCodeVerifier: {
+      name: `${secureCookiePrefix}next-auth.pkce.code_verifier`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: isProduction,
+      },
+    },
+    state: {
+      name: `${secureCookiePrefix}next-auth.state`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: isProduction,
+      },
+    },
+    nonce: {
+      name: `${secureCookiePrefix}next-auth.nonce`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: isProduction,
+      },
+    },
+  },
   session: {
     strategy: "jwt",
     maxAge: 15 * 60, // 15 minutes (access token lifetime)
