@@ -50,13 +50,11 @@ export async function GET(req: NextRequest) {
 
     if (promotionCodes.data.length > 0) {
       const promo = promotionCodes.data[0];
-      const appliesTo = promo.restrictions?.applies_to;
-      const hasProductRestrictions = Array.isArray(appliesTo?.products) && appliesTo.products.length > 0;
-      const hasPriceRestrictions = Array.isArray(appliesTo?.prices) && appliesTo.prices.length > 0;
-      const promotionRestrictions = {
-        products: appliesTo?.products ?? [],
-        prices: appliesTo?.prices ?? [],
-      };
+      const couponAppliesTo = promo.coupon.applies_to;
+      const productRestrictions = Array.isArray(couponAppliesTo?.products)
+        ? couponAppliesTo?.products ?? []
+        : [];
+      const hasProductRestrictions = productRestrictions.length > 0;
 
       diagnostics.checks.promotionCode = {
         found: true,
@@ -83,8 +81,8 @@ export async function GET(req: NextRequest) {
           minimum_amount_currency: promo.restrictions?.minimum_amount_currency,
           // Check if there are product/price restrictions
           has_product_restrictions: hasProductRestrictions,
-          has_price_restrictions: hasPriceRestrictions,
-          ...promotionRestrictions,
+          has_price_restrictions: false,
+          products: productRestrictions,
         },
       };
 
@@ -112,8 +110,8 @@ export async function GET(req: NextRequest) {
         hasFirstTimeRestriction: promo.restrictions?.first_time_transaction === true,
         hasMinimumAmount: !!promo.restrictions?.minimum_amount,
         hasProductRestrictions,
-        productRestrictions: promotionRestrictions.products,
-        priceRestrictions: promotionRestrictions.prices,
+        productRestrictions,
+        priceRestrictions: [],
       };
     } else {
       diagnostics.checks.promotionCode = {
