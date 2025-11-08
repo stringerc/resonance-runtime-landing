@@ -74,7 +74,8 @@ export default function TrustCenterPage() {
           <p className="mt-3 text-sm text-neutral-400">
             Every deployment inherits the baseline documented above: TLS-only session cookies, constant-time API key checks, and CSP rules that
             explicitly admit Intercom, Stripe, and Resonance-controlled origins. Dashboard releases are versioned and tagged; the agent exposes version
-            metadata so you can confirm what is running directly from the UI.
+            metadata so you can confirm what is running directly from the UI. Export a JSON/CSV health snapshot from the dashboard Overview to capture
+            the same data for audits.
           </p>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-surface-700 bg-surface-900/70 p-4">
@@ -111,8 +112,8 @@ export default function TrustCenterPage() {
         </section>
 
         <footer className="rounded-2xl border border-brand-400/30 bg-brand-500/10 p-5 text-sm text-brand-100">
-          Looking for deployment hardening steps? Follow the
-          <Link href="/docs/desktop-agent/README.md" className="ml-1 text-brand-50 underline hover:text-brand-100">
+          Looking for deployment hardening steps? Follow the{' '}
+          <Link href="/docs/desktop-agent/README.md" className="text-brand-50 underline hover:text-brand-100">
             desktop agent operations guide
           </Link>
           , or export an audit bundle right from the dashboard Trust Center panel.
