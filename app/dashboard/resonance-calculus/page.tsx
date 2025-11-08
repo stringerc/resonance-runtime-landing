@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, ChangeEvent } from 'react';
 import ResonanceInsights from '@/components/ResonanceInsights';
+import DataAlerts from '@/components/onboarding/DataAlerts';
 
 interface Metrics {
   R: number;
@@ -897,6 +898,13 @@ export default function ResonanceCalculusPage() {
           latestSampleTime={latestSampleTime}
           latencyPresent={Boolean(metrics?.p99Latency)}
         />
+        <div className="mt-4">
+          <DataAlerts
+            hasLatency={Boolean(metrics?.p99Latency)}
+            hasPhaseHistory={history.length > 50}
+            historyHours={history.length ? Math.min((history.length * 5) / 60, 48) : 0}
+          />
+        </div>
       </div>
     </div>
   );

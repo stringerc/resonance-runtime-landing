@@ -7,6 +7,7 @@ import ResonanceInsights from "@/components/ResonanceInsights";
 import DashboardClient from "./DashboardClient";
 import OnboardingChecklist from "@/components/dashboard/OnboardingChecklist";
 import OnboardingLauncher from "@/components/onboarding/OnboardingLauncher";
+import DataAlerts from "@/components/onboarding/DataAlerts";
 
 type MetricKey =
   | "R"
@@ -312,6 +313,13 @@ export default async function DashboardPage() {
                   latestSampleTime={latestSampleTime}
                   latencyPresent={latencyPresent}
                 />
+                <div className="mt-4">
+                  <DataAlerts
+                    hasLatency={latencyPresent}
+                    hasPhaseHistory={resonanceHistory.length > 50}
+                    historyHours={resonanceHistory.length ? Math.min((resonanceHistory.length * 5) / 60, 48) : 0}
+                  />
+                </div>
               </div>
               <div className="space-y-4">
                 <OverviewCard
