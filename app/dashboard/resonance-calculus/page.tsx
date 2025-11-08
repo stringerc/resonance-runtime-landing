@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo, ChangeEvent } from 'react';
-import Link from 'next/link';
 import ResonanceInsights from '@/components/ResonanceInsights';
 
 interface Metrics {
@@ -225,35 +224,9 @@ export default function ResonanceCalculusPage() {
     timingScore !== null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Navigation Bar */}
-      <nav className="border-b border-gray-200 bg-white sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-primary-600">
-              Resonance Calculus
-            </Link>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/dashboard/canary"
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium"
-              >
-                ← Canary Dashboard
-              </Link>
-              <Link
-                href="/dashboard"
-                className="px-4 py-2 text-gray-700 hover:text-gray-900 transition font-medium"
-              >
-                Dashboard
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="flex-1">
+    <div className="px-6 py-8">
+      <div className="mx-auto max-w-7xl flex flex-col lg:flex-row gap-6">
+        <div className="flex-1 space-y-6">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Resonance Calculus Analysis</h1>
@@ -955,14 +928,13 @@ export default function ResonanceCalculusPage() {
             </div>
           </div>
         )}
-          </div>
-          <ResonanceInsights
-            metrics={insightMetrics}
-            band={overallBandCompliance}
-            latestSampleTime={latestSampleTime}
-            latencyPresent={Boolean(metrics?.p99Latency)}
-          />
         </div>
+        <ResonanceInsights
+          metrics={insightMetrics}
+          band={overallBandCompliance}
+          latestSampleTime={latestSampleTime}
+          latencyPresent={Boolean(metrics?.p99Latency)}
+        />
       </div>
     </div>
   );

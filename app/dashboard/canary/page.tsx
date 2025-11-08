@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
-import ResonanceInsights from '@/components/ResonanceInsights';
+import { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
+import ResonanceInsights from "@/components/ResonanceInsights";
 
 interface Metrics {
   R: number;

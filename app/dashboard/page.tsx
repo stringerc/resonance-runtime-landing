@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import ResonanceInsights from "@/components/ResonanceInsights";
 import DashboardClient from "./DashboardClient";
+import OnboardingChecklist from "@/components/dashboard/OnboardingChecklist";
 
 type MetricKey =
   | "R"
@@ -111,46 +112,35 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="border-b border-gray-200 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-primary-600">
-              Resonance Calculus
-            </Link>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">{session.user.email}</span>
-              <form action="/api/auth/signout" method="POST">
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-gray-700 hover:text-gray-900 transition"
-                >
-                  Sign Out
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Dashboard Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-2">
-            Welcome back, {session.user.name || session.user.email}
+    <div className="px-6 py-10">
+      <div className="mx-auto max-w-7xl space-y-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-neutral-50">Dashboard</h1>
+          <p className="mt-2 text-neutral-400">
+            Welcome back, {session.user.name || session.user.email}. Keep the agent streaming for steady band compliance.
           </p>
         </div>
+        <div className="w-full max-w-sm">
+          <OnboardingChecklist
+            completedSteps={{
+              adaptive: license?.status === "ACTIVE",
+              phase: resonanceHistory.length > 25,
+              latency: latencyPresent,
+              history: resonanceHistory.length >= 288,
+            }}
+          />
+        </div>
+      </div>
 
         {/* License Status Card */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="rounded-2xl border border-surface-800 bg-surface-900/80 p-6 shadow-brand-glow">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">License Status</h2>
+            <h2 className="text-xl font-semibold text-neutral-50">License Status</h2>
             {license && (
               <Link
                 href="/dashboard/canary"
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                className="text-sm font-medium text-brand-200 hover:text-brand-100"
               >
                 View Monitoring →
               </Link>
@@ -160,21 +150,21 @@ export default async function DashboardPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
-                  <span className="text-sm text-gray-600">Plan</span>
-                  <div className="font-semibold capitalize text-lg mt-1">
+                  <span className="text-sm text-neutral-400">Plan</span>
+                  <div className="mt-1 text-lg font-semibold capitalize text-neutral-100">
                     {license.type?.toLowerCase() === "pro" ? "Pro" : license.type?.toLowerCase() || "N/A"}
                   </div>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-600">Status</span>
+                  <span className="text-sm text-neutral-400">Status</span>
                   <div className="mt-1">
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-semibold ${
                         license.status === "ACTIVE"
-                          ? "bg-green-100 text-green-800"
+                          ? "bg-emerald-500/15 text-emerald-200"
                           : license.status === "TRIAL"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-red-100 text-red-800"
+                          ? "bg-brand-500/15 text-brand-200"
+                          : "bg-rose-500/15 text-rose-200"
                       }`}
                     >
                       {license.status}
@@ -183,25 +173,25 @@ export default async function DashboardPage() {
                 </div>
                 {license.currentPeriodEnd && (
                   <div>
-                    <span className="text-sm text-gray-600">Renews</span>
-                    <div className="font-semibold text-lg mt-1">
+                    <span className="text-sm text-neutral-400">Renews</span>
+                    <div className="mt-1 text-lg font-semibold text-neutral-100">
                       {new Date(license.currentPeriodEnd).toLocaleDateString()}
                     </div>
                   </div>
                 )}
               </div>
               {license.status === "ACTIVE" && (
-                <div className="pt-4 border-t border-gray-200">
+                <div className="border-t border-surface-800 pt-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600">Subscription Active</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-sm text-neutral-300">Subscription Active</p>
+                      <p className="mt-1 text-xs text-neutral-500">
                         Access to all Resonance Pro features
                       </p>
                     </div>
                     <Link
                       href="/dashboard/canary"
-                      className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-medium"
+                      className="text-sm font-medium transition rounded-lg px-4 py-2 bg-brand-gradient text-neutral-900"
                     >
                       View Monitoring
                     </Link>
@@ -211,7 +201,7 @@ export default async function DashboardPage() {
               {license.status !== "ACTIVE" && (
                 <Link
                   href="/pricing"
-                  className="block mt-4 text-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                  className="block mt-4 text-center px-4 py-2 text-sm font-semibold text-brand-100 transition rounded-lg border border-brand-400/40 hover:bg-brand-500/10"
                 >
                   Upgrade Plan
                 </Link>
@@ -219,10 +209,10 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">No active license</p>
+              <p className="mb-4 text-neutral-400">No active license</p>
               <Link
                 href="/pricing"
-                className="inline-block px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                className="inline-block px-6 py-2 text-sm font-semibold text-brand-900 transition rounded-lg bg-brand-gradient"
               >
                 Choose a Plan
               </Link>
