@@ -6,6 +6,7 @@ import Link from "next/link";
 import ResonanceInsights from "@/components/ResonanceInsights";
 import DashboardClient from "./DashboardClient";
 import OnboardingChecklist from "@/components/dashboard/OnboardingChecklist";
+import OnboardingLauncher from "@/components/onboarding/OnboardingLauncher";
 
 type MetricKey =
   | "R"
@@ -121,9 +122,17 @@ export default async function DashboardPage() {
             Welcome back, {session.user.name || session.user.email}. Keep the agent streaming for steady band compliance.
           </p>
         </div>
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm space-y-4">
           <OnboardingChecklist
             completedSteps={{
+              adaptive: license?.status === "ACTIVE",
+              phase: resonanceHistory.length > 25,
+              latency: latencyPresent,
+              history: resonanceHistory.length >= 288,
+            }}
+          />
+          <OnboardingLauncher
+            checklistStatus={{
               adaptive: license?.status === "ACTIVE",
               phase: resonanceHistory.length > 25,
               latency: latencyPresent,
