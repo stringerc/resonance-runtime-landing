@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import MetricGlossary from '@/components/MetricGlossary';
+import ResonanceInsights from '@/components/ResonanceInsights';
 
 interface Metrics {
   R: number;
@@ -50,6 +50,38 @@ export default function ResonanceCalculusPage() {
   }>>([]);
   const [timeInterval, setTimeInterval] = useState<TimeInterval>('daily');
   const [selectedComponent, setSelectedComponent] = useState<'coherence' | 'tail' | 'timing' | 'all'>('all');
+
+  const bandCompliance = useMemo(() => {
+    if (!history.length) {
+      return { percentage: 0, inBand: 0, total: 0 };
+    }
+    const inBand = history.filter((point) => point.R >= 0.35 && point.R <= 0.65).length;
+    return {
+      percentage: (inBand / history.length) * 100,
+      inBand,
+      total: history.length,
+    };
+  }, [history]);
+
+  const latestSample = history.length ? history[history.length - 1] : null;
+  const coherenceScore = metrics?.coherenceScore ?? latestSample?.coherenceScore ?? null;
+  const tailHealthScore = metrics?.tailHealthScore ?? latestSample?.tailHealthScore ?? null;
+  const timingScore = metrics?.timingScore ?? latestSample?.timingScore ?? null;
+  const lambdaRes = metrics?.lambdaRes ?? latestSample?.lambdaRes ?? null;
+  const latestSampleTime = latestSample?.time ?? null;
+
+  const insightMetrics = useMemo(() => {
+    if (!metrics) {
+      return null;
+    }
+    return {
+      ...metrics,
+      coherenceScore,
+      tailHealthScore,
+      timingScore,
+      lambdaRes,
+    };
+  }, [metrics, coherenceScore, tailHealthScore, timingScore, lambdaRes]);
 
   useEffect(() => {
     fetchMetrics();
@@ -179,7 +211,10 @@ export default function ResonanceCalculusPage() {
     );
   }
 
-  const hasCalculus = metrics.coherenceScore !== null && metrics.coherenceScore !== undefined;
+  const hasCalculus =
+    coherenceScore !== null ||
+    tailHealthScore !== null ||
+    timingScore !== null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -222,7 +257,7 @@ export default function ResonanceCalculusPage() {
               href="#metric-glossary"
               className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700"
             >
-              Need definitions? <span className="font-semibold">Jump to the field guide →</span>
+              Need guidance? <span className="font-semibold">Open live insights →</span>
             </a>
           </div>
         </div>
@@ -268,31 +303,6 @@ export default function ResonanceCalculusPage() {
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className="mb-6 p-5 border border-blue-200 bg-blue-50 rounded-lg">
-            <h3 className="text-sm font-semibold text-blue-900 uppercase tracking-wide mb-2">Getting Into Tune</h3>
-            <p className="text-sm text-blue-800 mb-3">
-              Band compliance rises only when the agent is in adaptive control and receiving live phase samples.
-              Follow this checklist to drive R(t) into the optimal band:
-            </p>
-            <ol className="list-decimal list-inside space-y-1 text-sm text-blue-900">
-              <li>
-                <span className="font-medium">Start the agent in adaptive mode:</span> ensure <code>RESONANCE_MODE=adaptive</code> (Render → Environment) and redeploy if needed.
-              </li>
-              <li>
-                <span className="font-medium">Feed phase / latency samples:</span> deploy the Resonance SDK or run <code>node resonance/bench/feed_phases.js</code> to push test samples to the intake endpoint.
-              </li>
-              <li>
-                <span className="font-medium">Let it run for a few minutes:</span> once 50+ samples arrive, Resonance Calculus metrics will populate and R(t) will begin climbing.
-              </li>
-              <li>
-                <span className="font-medium">Tune if needed:</span> adjust coupling (K_min/K_max) or workload mix if R(t) remains outside the band after several minutes.
-              </li>
-            </ol>
-            <p className="text-xs text-blue-700 mt-3">
-              Tip: the Intercom assistant can guide you through these steps in real time once activated.
-            </p>
           </div>
 
           <div className="relative h-80 bg-gray-50 rounded-lg p-4">
@@ -585,16 +595,16 @@ export default function ResonanceCalculusPage() {
         {/* Current Component Values */}
         {hasCalculus && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            {metrics.coherenceScore !== null && metrics.coherenceScore !== undefined && (
+            {coherenceScore !== null && coherenceScore !== undefined && (
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
                 <h3 className="text-sm font-semibold text-blue-900 mb-2">Coherence Score</h3>
                 <div className="text-3xl font-bold text-blue-700 mb-2">
-                  {(metrics.coherenceScore * 100).toFixed(1)}%
+                  {(coherenceScore * 100).toFixed(1)}%
                 </div>
                 <div className="h-2 bg-blue-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-blue-600 transition-all duration-300"
-                    style={{ width: `${metrics.coherenceScore * 100}%` }}
+                    style={{ width: `${Math.min(Math.max(coherenceScore * 100, 0), 100)}%` }}
                   />
                 </div>
                 <div className="text-xs text-blue-700 mt-2">
@@ -603,16 +613,16 @@ export default function ResonanceCalculusPage() {
               </div>
             )}
             
-            {metrics.tailHealthScore !== null && metrics.tailHealthScore !== undefined && (
+              {tailHealthScore !== null && tailHealthScore !== undefined && (                                                             
               <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
                 <h3 className="text-sm font-semibold text-green-900 mb-2">Tail Health Score</h3>
                 <div className="text-3xl font-bold text-green-700 mb-2">
-                  {(metrics.tailHealthScore * 100).toFixed(1)}%
+                    {(tailHealthScore * 100).toFixed(1)}%
                 </div>
                 <div className="h-2 bg-green-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-green-600 transition-all duration-300"
-                    style={{ width: `${metrics.tailHealthScore * 100}%` }}
+                      style={{ width: `${Math.min(Math.max(tailHealthScore * 100, 0), 100)}%` }}
                   />
                 </div>
                 <div className="text-xs text-green-700 mt-2">
@@ -621,16 +631,16 @@ export default function ResonanceCalculusPage() {
               </div>
             )}
             
-            {metrics.timingScore !== null && metrics.timingScore !== undefined && (
+              {timingScore !== null && timingScore !== undefined && (                                                                     
               <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
                 <h3 className="text-sm font-semibold text-purple-900 mb-2">Timing Score</h3>
                 <div className="text-3xl font-bold text-purple-700 mb-2">
-                  {(metrics.timingScore * 100).toFixed(1)}%
+                    {(timingScore * 100).toFixed(1)}%
                 </div>
                 <div className="h-2 bg-purple-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-purple-600 transition-all duration-300"
-                    style={{ width: `${metrics.timingScore * 100}%` }}
+                      style={{ width: `${Math.min(Math.max(timingScore * 100, 0), 100)}%` }}
                   />
                 </div>
                 <div className="text-xs text-purple-700 mt-2">
@@ -639,15 +649,15 @@ export default function ResonanceCalculusPage() {
               </div>
             )}
             
-            {metrics.lambdaRes !== null && metrics.lambdaRes !== undefined && (
+            {lambdaRes !== null && lambdaRes !== undefined && (
               <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
                 <h3 className="text-sm font-semibold text-orange-900 mb-2">Max-Plus λ_res</h3>
                 <div className="text-2xl font-bold text-orange-700 mb-2">
-                  {metrics.lambdaRes.toFixed(3)}
+                  {lambdaRes.toFixed(3)}
                 </div>
                 <div className="text-xs text-orange-600 mb-2">Cycle Time</div>
                 <div className="text-xs text-orange-700">
-                  {metrics.lambdaRes < 10 ? '✓ Fast' : metrics.lambdaRes < 50 ? '⚠ Moderate' : '⚠ Slow'}
+                  {lambdaRes < 10 ? '✓ Fast' : lambdaRes < 50 ? '⚠ Moderate' : '⚠ Slow'}                                                        
                 </div>
               </div>
             )}
@@ -655,7 +665,7 @@ export default function ResonanceCalculusPage() {
         )}
 
         {/* Tail Health Analysis Panel */}
-        {metrics.tailHealthScore !== null && metrics.tailHealthScore !== undefined && (
+        {tailHealthScore !== null && tailHealthScore !== undefined && (                                                                         
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <h2 className="text-xl font-semibold mb-4">Tail Health Analysis</h2>
             
@@ -665,18 +675,18 @@ export default function ResonanceCalculusPage() {
                 <div>
                   <div className="text-sm text-gray-600 mb-1">Tail Health Score</div>
                   <div className="text-4xl font-bold text-gray-900">
-                    {(metrics.tailHealthScore * 100).toFixed(1)}%
+                    {(tailHealthScore * 100).toFixed(1)}%
                   </div>
                 </div>
                 <div className="flex-1">
                   <div className="h-6 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className={`h-full transition-all duration-300 ${
-                        metrics.tailHealthScore >= 0.7 ? 'bg-green-600' :
-                        metrics.tailHealthScore >= 0.5 ? 'bg-yellow-500' :
+                        tailHealthScore >= 0.7 ? 'bg-green-600' :
+                        tailHealthScore >= 0.5 ? 'bg-yellow-500' :
                         'bg-red-600'
                       }`}
-                      style={{ width: `${metrics.tailHealthScore * 100}%` }}
+                      style={{ width: `${Math.min(Math.max(tailHealthScore * 100, 0), 100)}%` }}
                     />
                   </div>
                 </div>
@@ -743,7 +753,7 @@ export default function ResonanceCalculusPage() {
         )}
 
         {/* Max-Plus Timing Analysis */}
-        {metrics.lambdaRes !== null && metrics.lambdaRes !== undefined && (
+        {lambdaRes !== null && lambdaRes !== undefined && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <h2 className="text-xl font-semibold mb-4">Max-Plus Timing Analysis</h2>
             
@@ -751,26 +761,26 @@ export default function ResonanceCalculusPage() {
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Current Cycle Time (λ_res)</h3>
                 <div className="text-4xl font-bold text-gray-900 mb-2">
-                  {metrics.lambdaRes.toFixed(3)}
+                  {lambdaRes.toFixed(3)}
                 </div>
                 <div className="text-sm text-gray-600">
-                  {metrics.lambdaRes < 10 ? '✓ Fast cycle time - good synchronization' :
-                   metrics.lambdaRes < 50 ? '⚠ Moderate cycle time - monitor bottlenecks' :
+                  {lambdaRes < 10 ? '✓ Fast cycle time - good synchronization' :
+                   lambdaRes < 50 ? '⚠ Moderate cycle time - monitor bottlenecks' :
                    '⚠ Slow cycle time - potential bottlenecks detected'}
                 </div>
               </div>
               
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Timing Score</h3>
-                {metrics.timingScore !== null && metrics.timingScore !== undefined ? (
+                {timingScore !== null && timingScore !== undefined ? (
                   <>
                     <div className="text-4xl font-bold text-gray-900 mb-2">
-                      {(metrics.timingScore * 100).toFixed(1)}%
+                      {(timingScore * 100).toFixed(1)}%
                     </div>
                     <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-purple-600 transition-all duration-300"
-                        style={{ width: `${metrics.timingScore * 100}%` }}
+                        style={{ width: `${Math.min(Math.max(timingScore * 100, 0), 100)}%` }}
                       />
                     </div>
                     <div className="text-sm text-gray-600 mt-2">
@@ -819,10 +829,10 @@ export default function ResonanceCalculusPage() {
                   
                   {/* Data polygon */}
                   {(() => {
-                    const coherence = metrics.coherenceScore || 0;
-                    const tail = metrics.tailHealthScore || 0;
-                    const timing = metrics.timingScore || 0;
-                    const entropy = metrics.spectralEntropy || 0;
+                    const coherence = coherenceScore || 0;
+                    const tail = tailHealthScore || 0;
+                    const timing = timingScore || 0;
+                    const entropy = metrics?.spectralEntropy ?? 0;
                     
                     const points = [
                       { angle: 0, value: coherence },      // Coherence (right)
@@ -887,25 +897,28 @@ export default function ResonanceCalculusPage() {
               <div>
                 <div className="text-sm text-gray-600 mb-1">Coherence</div>
                 <div className="text-lg font-bold text-gray-900">
-                  {metrics.coherenceScore ? (metrics.coherenceScore * 100).toFixed(0) : 'N/A'}%
+                  {coherenceScore !== null && coherenceScore !== undefined ? (coherenceScore * 100).toFixed(0) : '0'}%
                 </div>
               </div>
               <div>
                 <div className="text-sm text-gray-600 mb-1">Tail Health</div>
                 <div className="text-lg font-bold text-gray-900">
-                  {metrics.tailHealthScore ? (metrics.tailHealthScore * 100).toFixed(0) : 'N/A'}%
+                  {tailHealthScore !== null && tailHealthScore !== undefined ? (tailHealthScore * 100).toFixed(0) : '0'}%
                 </div>
               </div>
               <div>
                 <div className="text-sm text-gray-600 mb-1">Timing</div>
                 <div className="text-lg font-bold text-gray-900">
-                  {metrics.timingScore ? (metrics.timingScore * 100).toFixed(0) : 'N/A'}%
+                  {timingScore !== null && timingScore !== undefined ? (timingScore * 100).toFixed(0) : '0'}%
                 </div>
               </div>
               <div>
                 <div className="text-sm text-gray-600 mb-1">Entropy</div>
                 <div className="text-lg font-bold text-gray-900">
-                  {(metrics.spectralEntropy * 100).toFixed(0)}%
+                  {(metrics?.spectralEntropy !== undefined && metrics?.spectralEntropy !== null
+                    ? metrics.spectralEntropy * 100
+                    : 0
+                  ).toFixed(0)}%
                 </div>
               </div>
             </div>
@@ -935,7 +948,12 @@ export default function ResonanceCalculusPage() {
           </div>
         )}
           </div>
-          <MetricGlossary />
+          <ResonanceInsights
+            metrics={insightMetrics}
+            band={bandCompliance}
+            latestSampleTime={latestSampleTime}
+            latencyPresent={Boolean(metrics?.p99Latency)}
+          />
         </div>
       </div>
     </div>

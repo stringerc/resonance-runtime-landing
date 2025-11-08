@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import MetricGlossary from '@/components/MetricGlossary';
+import ResonanceInsights from '@/components/ResonanceInsights';
 
 interface Metrics {
   R: number;
@@ -35,22 +35,11 @@ interface Metrics {
   } | null;
 }
 
-interface AIInsight {
-  main: string;
-  confidence: number;
-  supporting: {
-    title: string;
-    value: string;
-    status: 'good' | 'warning' | 'critical';
-  }[];
-}
-
 type TimeInterval = 'realtime' | 'hourly' | 'daily' | 'monthly' | 'quarterly' | 'yearly';
 
 export default function CanaryDashboard() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [loading, setLoading] = useState(true);
-  const [insights, setInsights] = useState<AIInsight | null>(null);
   const [elapsedHours, setElapsedHours] = useState(0);
   const [history, setHistory] = useState<Array<{ time: number; R: number }>>([]);
   const [timeInterval, setTimeInterval] = useState<TimeInterval>('realtime');
@@ -61,6 +50,20 @@ export default function CanaryDashboard() {
     const interval = setInterval(fetchMetrics, 5000); // Update every 5 seconds
     return () => clearInterval(interval);
   }, []);
+
+  const bandCompliance = useMemo(() => {
+    if (!history.length) {
+      return { percentage: 0, inBand: 0, total: 0 };
+    }
+    const inBand = history.filter((point) => point.R >= 0.35 && point.R <= 0.65).length;
+    return {
+      percentage: (inBand / history.length) * 100,
+      inBand,
+      total: history.length,
+    };
+  }, [history]);
+
+  const latestSampleTime = history.length ? history[history.length - 1].time : null;
 
   useEffect(() => {
     // Calculate elapsed hours since canary start
@@ -91,10 +94,6 @@ export default function CanaryDashboard() {
         });
       }
       
-      // Generate AI insights
-      if (data) {
-        generateInsights(data);
-      }
       setLoading(false);
     } catch (error) {
       console.error('Failed to fetch metrics:', error);
@@ -142,22 +141,6 @@ export default function CanaryDashboard() {
     
     return filtered;
   };
-
-  const generateInsights = (m: Metrics) => {
-    const modeLabels: { [key: number]: string } = {
-      0: 'observe',
-      1: 'shadow',
-      2: 'adaptive',
-      3: 'active'
-    };
-
-    const mode = modeLabels[m.modeValue] || 'unknown';
-    const inBand = m.R >= 0.35 && m.R <= 0.65;
-    const entropyOptimal = m.spectralEntropy >= 0.4 && m.spectralEntropy <= 0.6;
-    
-    // Resonance Calculus component analysis
-    const hasCalculus = m.coherenceScore !== null && m.coherenceScore !== undefined;
-    const coherenceGood = m.coherenceScore !== null && m.coherenceScore !== undefined && m.coherenceScore >= 0.5;
     const tailGood = m.tailHealthScore !== null && m.tailHealthScore !== undefined && m.tailHealthScore >= 0.5;
     const timingGood = m.timingScore !== null && m.timingScore !== undefined && m.timingScore >= 0.5;
 
@@ -214,38 +197,6 @@ export default function CanaryDashboard() {
         status: mode === 'adaptive' ? 'good' : 'warning'
       }
     ];
-
-    // Add Resonance Calculus components if available
-    if (hasCalculus) {
-      if (m.coherenceScore !== null && m.coherenceScore !== undefined) {
-        supporting.push({
-          title: 'Coherence Score',
-          value: `${m.coherenceScore.toFixed(2)} ${coherenceGood ? '✓' : '⚠'}`,
-          status: coherenceGood ? 'good' : 'warning'
-        });
-      }
-      if (m.tailHealthScore !== null && m.tailHealthScore !== undefined) {
-        supporting.push({
-          title: 'Tail Health Score',
-          value: `${m.tailHealthScore.toFixed(2)} ${tailGood ? '✓' : '⚠'}`,
-          status: tailGood ? 'good' : 'warning'
-        });
-      }
-      if (m.timingScore !== null && m.timingScore !== undefined) {
-        supporting.push({
-          title: 'Timing Score',
-          value: `${m.timingScore.toFixed(2)} ${timingGood ? '✓' : '⚠'}`,
-          status: timingGood ? 'good' : 'warning'
-        });
-      }
-    }
-
-    setInsights({
-      main: mainInsight,
-      confidence,
-      supporting
-    });
-  };
 
   const getModeColor = (mode: string) => {
     switch (mode) {
@@ -339,7 +290,7 @@ export default function CanaryDashboard() {
               href="#metric-glossary"
               className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700"
             >
-              Need a refresher? <span className="font-semibold">Open the field guide →</span>
+              Need guidance? <span className="font-semibold">Open live insights →</span>
             </a>
           </div>
         </div>
@@ -837,38 +788,6 @@ export default function CanaryDashboard() {
           </div>
         </div>
 
-        {/* AI Insights */}
-        {insights && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <span>🤖</span> AI Insights
-            </h2>
-            
-            {/* Main Insight */}
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 rounded">
-              <div className="font-semibold text-blue-900 mb-1">MAIN INSIGHT</div>
-              <p className="text-blue-800">{insights.main}</p>
-              <div className="text-xs text-blue-600 mt-2">Confidence: {insights.confidence}%</div>
-            </div>
-
-            {/* Supporting Insights */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {insights.supporting.map((insight, idx) => (
-                <div key={idx} className="border border-gray-200 rounded-lg p-4">
-                  <div className="text-sm font-semibold text-gray-700 mb-2">{insight.title}</div>
-                  <div className={`text-lg font-bold ${
-                    insight.status === 'good' ? 'text-green-600' :
-                    insight.status === 'warning' ? 'text-yellow-600' :
-                    'text-red-600'
-                  }`}>
-                    {insight.value}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Progress Bar */}
         <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Canary Validation Progress</h3>
@@ -887,7 +806,12 @@ export default function CanaryDashboard() {
           </div>
         </div>
           </div>
-          <MetricGlossary />
+          <ResonanceInsights
+            metrics={metrics}
+            band={bandCompliance}
+            latestSampleTime={latestSampleTime}
+            latencyPresent={Boolean(metrics?.p99Latency)}
+          />
         </div>
       </div>
     </div>
