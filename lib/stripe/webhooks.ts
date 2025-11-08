@@ -1,9 +1,35 @@
-import { headers } from "next/headers";
 import Stripe from "stripe";
 import { stripe } from "./config";
 import { prisma } from "../db";
+import { LicenseStatus, LicenseType, ProductType, ResonanceLicenseType } from "@prisma/client";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
+const requireStripe = (): Stripe => {
+  if (!stripe) {
+    throw new Error("Stripe client is not configured. Please set STRIPE_SECRET_KEY.");
+  }
+  return stripe;
+};
+
+const normalizeResonanceLicenseType = (licenseType?: string | null): ResonanceLicenseType | null => {
+  if (!licenseType) {
+    return null;
+  }
+  const normalized = licenseType.toLowerCase() as ResonanceLicenseType;
+  return normalized === "starter" || normalized === "pro" || normalized === "enterprise" ? normalized : null;
+};
+
+const toLegacyLicenseType = (licenseType: ResonanceLicenseType): LicenseType => {
+  switch (licenseType) {
+    case "starter":
+      return LicenseType.BASIC;
+    case "pro":
+      return LicenseType.PRO;
+    case "enterprise":
+      return LicenseType.ENTERPRISE;
+  }
+};
 
 /**
  * Verify and parse Stripe webhook event
@@ -22,16 +48,18 @@ export async function verifyWebhook(
   }
   
   try {
-    const event = stripe.webhooks.constructEvent(
+    const stripeClient = requireStripe();
+    const event = stripeClient.webhooks.constructEvent(
       body,
       signature,
       webhookSecret
     );
     
     return event;
-  } catch (err: any) {
-    console.error(`Webhook signature verification failed: ${err.message}`);
-    throw new Error(`Webhook Error: ${err.message}`);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error(`Webhook signature verification failed: ${message}`);
+    throw new Error(`Webhook Error: ${message}`);
   }
 }
 
@@ -52,7 +80,7 @@ export async function isEventProcessed(eventId: string): Promise<boolean> {
 export async function markEventProcessed(
   eventId: string,
   type: string,
-  payload?: any
+  payload?: Stripe.Event
 ): Promise<void> {
   await prisma.webhookEvent.upsert({
     where: { eventId },
@@ -105,9 +133,11 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
  * Activate license when payment succeeds
  */
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  const stripeClient = requireStripe();
+
   // Try to get metadata from session first
   let userId = session.metadata?.userId;
-  let licenseType = session.metadata?.licenseType as string;
+  let licenseType = session.metadata?.licenseType;
   
   // If not in session metadata, try to get from subscription metadata
   if (!userId || !licenseType) {
@@ -117,7 +147,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     
     if (subscriptionId) {
       try {
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const subscription = await stripeClient.subscriptions.retrieve(subscriptionId);
         userId = subscription.metadata?.userId || userId;
         licenseType = subscription.metadata?.licenseType || licenseType;
       } catch (error) {
@@ -126,7 +156,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
   }
   
-  if (!userId || !licenseType) {
+  const normalizedLicenseType = normalizeResonanceLicenseType(licenseType);
+
+  if (!userId || !normalizedLicenseType) {
     console.error("Missing userId or licenseType in checkout session metadata. Session ID:", session.id);
     console.error("Session metadata:", session.metadata);
     return;
@@ -153,7 +185,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
   
   // Fetch subscription details
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const subscription = await stripeClient.subscriptions.retrieve(subscriptionId);
   
   // Check if license exists for this user
   const existingLicense = await prisma.license.findFirst({
@@ -165,12 +197,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     await prisma.license.update({
       where: { id: existingLicense.id },
       data: {
+        productType: ProductType.RESONANCE,
+        resonanceType: normalizedLicenseType,
+        syncscriptType: null,
+        type: toLegacyLicenseType(normalizedLicenseType),
         stripeCustomerId: customerId,
         stripeSubscriptionId: subscriptionId,
         stripePriceId: subscription.items.data[0]?.price.id,
         stripeProductId: subscription.items.data[0]?.price.product as string,
-        type: licenseType.toUpperCase() as any,
-        status: "ACTIVE",
+        status: LicenseStatus.ACTIVE,
         currentPeriodStart: new Date(subscription.current_period_start * 1000),
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       },
@@ -180,12 +215,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     await prisma.license.create({
       data: {
         userId,
+        productType: ProductType.RESONANCE,
+        resonanceType: normalizedLicenseType,
+        syncscriptType: null,
         stripeCustomerId: customerId,
         stripeSubscriptionId: subscriptionId,
         stripePriceId: subscription.items.data[0]?.price.id,
         stripeProductId: subscription.items.data[0]?.price.product as string,
-        type: licenseType.toUpperCase() as any,
-        status: "ACTIVE",
+        type: toLegacyLicenseType(normalizedLicenseType),
+        status: LicenseStatus.ACTIVE,
         currentPeriodStart: new Date(subscription.current_period_start * 1000),
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       },
@@ -201,6 +239,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
  * This is a fallback if checkout.session.completed didn't create the license
  */
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
+  const stripeClient = requireStripe();
   const customerId = typeof invoice.customer === "string"
     ? invoice.customer
     : invoice.customer?.id;
@@ -220,7 +259,7 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
   }
   
   // Fetch subscription
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const subscription = await stripeClient.subscriptions.retrieve(subscriptionId);
   
   // Extract metadata from invoice line items or subscription metadata
   // Metadata is often in the first line item's metadata
@@ -254,17 +293,22 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
   });
   
   // If no license exists and we have metadata, create one
-  if (!license && userId && licenseType) {
+  const normalizedLicenseType = normalizeResonanceLicenseType(licenseType);
+
+  if (!license && userId && normalizedLicenseType) {
     console.log(`Creating license from invoice.payment_succeeded for user ${userId}`);
     license = await prisma.license.create({
       data: {
         userId,
+        productType: ProductType.RESONANCE,
+        resonanceType: normalizedLicenseType,
+        syncscriptType: null,
         stripeCustomerId: customerId,
         stripeSubscriptionId: subscriptionId,
         stripePriceId: subscription.items.data[0]?.price.id,
         stripeProductId: subscription.items.data[0]?.price.product as string,
-        type: licenseType.toUpperCase() as any,
-        status: "ACTIVE",
+        type: toLegacyLicenseType(normalizedLicenseType),
+        status: LicenseStatus.ACTIVE,
         currentPeriodStart: new Date(subscription.current_period_start * 1000),
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       },
@@ -275,13 +319,21 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
     await prisma.license.update({
       where: { id: license.id },
       data: {
-        status: "ACTIVE",
+        status: LicenseStatus.ACTIVE,
         currentPeriodStart: new Date(subscription.current_period_start * 1000),
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        ...(normalizedLicenseType
+          ? {
+              productType: ProductType.RESONANCE,
+              resonanceType: normalizedLicenseType,
+              syncscriptType: null,
+              type: toLegacyLicenseType(normalizedLicenseType),
+            }
+          : {}),
       },
     });
-  } else if (!userId || !licenseType) {
-    console.error("No license found and missing metadata in invoice. Cannot create license.");
+  } else if (!userId || !normalizedLicenseType) {
+    console.error("No license found and missing or invalid metadata in invoice. Cannot create license.");
     console.error("Invoice ID:", invoice.id);
     console.error("Subscription metadata:", subscription.metadata);
     if (invoice.lines?.data?.[0]?.metadata) {
@@ -329,7 +381,7 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
     await prisma.license.update({
       where: { id: license.id },
       data: {
-        status: "EXPIRED",
+        status: LicenseStatus.EXPIRED,
       },
     });
     
@@ -351,7 +403,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     await prisma.license.update({
       where: { id: license.id },
       data: {
-        status: "CANCELLED",
+        status: LicenseStatus.CANCELLED,
         cancelledAt: new Date(),
       },
     });
@@ -373,7 +425,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       data: {
         currentPeriodStart: new Date(subscription.current_period_start * 1000),
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        status: subscription.status === "active" ? "ACTIVE" : "EXPIRED",
+        status: subscription.status === "active" ? LicenseStatus.ACTIVE : LicenseStatus.EXPIRED,
       },
     });
   }

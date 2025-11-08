@@ -5,6 +5,18 @@ import { stripe } from "@/lib/stripe/config";
 // Explicitly use Node.js runtime (required for Stripe API calls)
 export const runtime = 'nodejs';
 
+interface DiagnosticsPayload {
+  code: string;
+  timestamp: string;
+  checks: Record<string, unknown>;
+  error?: {
+    message: string;
+    type?: string;
+    code?: string | number;
+    stack?: string;
+  };
+}
+
 /**
  * Diagnostic endpoint to check Stripe coupon status
  * GET /api/stripe/check-coupon?code=TEST100
@@ -23,7 +35,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const diagnostics: any = {
+  const diagnostics: DiagnosticsPayload = {
     code,
     timestamp: new Date().toISOString(),
     checks: {},
@@ -38,6 +50,14 @@ export async function GET(req: NextRequest) {
 
     if (promotionCodes.data.length > 0) {
       const promo = promotionCodes.data[0];
+      const appliesTo = promo.restrictions?.applies_to;
+      const hasProductRestrictions = Array.isArray(appliesTo?.products) && appliesTo.products.length > 0;
+      const hasPriceRestrictions = Array.isArray(appliesTo?.prices) && appliesTo.prices.length > 0;
+      const promotionRestrictions = {
+        products: appliesTo?.products ?? [],
+        prices: appliesTo?.prices ?? [],
+      };
+
       diagnostics.checks.promotionCode = {
         found: true,
         id: promo.id,
@@ -61,10 +81,10 @@ export async function GET(req: NextRequest) {
           first_time_transaction: promo.restrictions?.first_time_transaction,
           minimum_amount: promo.restrictions?.minimum_amount,
           minimum_amount_currency: promo.restrictions?.minimum_amount_currency,
-          applies_to: promo.restrictions?.applies_to,
           // Check if there are product/price restrictions
-          has_product_restrictions: !!promo.restrictions?.applies_to?.products?.length,
-          has_price_restrictions: !!promo.restrictions?.applies_to?.products?.some((p: any) => p.prices?.length),
+          has_product_restrictions: hasProductRestrictions,
+          has_price_restrictions: hasPriceRestrictions,
+          ...promotionRestrictions,
         },
       };
 
@@ -91,16 +111,10 @@ export async function GET(req: NextRequest) {
         maxRedemptionsReached: promo.max_redemptions ? promo.times_redeemed >= promo.max_redemptions : false,
         hasFirstTimeRestriction: promo.restrictions?.first_time_transaction === true,
         hasMinimumAmount: !!promo.restrictions?.minimum_amount,
-        hasProductRestrictions: !!promo.restrictions?.applies_to?.products?.length,
+        hasProductRestrictions,
+        productRestrictions: promotionRestrictions.products,
+        priceRestrictions: promotionRestrictions.prices,
       };
-
-      // Check if promotion code can be used with subscription mode
-      if (promo.restrictions?.applies_to?.products?.length) {
-        diagnostics.checks.validation.productRestrictions = promo.restrictions.applies_to.products.map((p: any) => ({
-          product: p.product,
-          prices: p.prices || [],
-        }));
-      }
     } else {
       diagnostics.checks.promotionCode = {
         found: false,
@@ -132,9 +146,9 @@ export async function GET(req: NextRequest) {
             message: "Coupon not found either",
           };
         }
-      } catch (couponError: any) {
+      } catch (couponError: unknown) {
         diagnostics.checks.coupon = {
-          error: couponError.message,
+          error: couponError instanceof Error ? couponError.message : "Unknown error",
         };
       }
     }
@@ -146,12 +160,28 @@ export async function GET(req: NextRequest) {
         : (diagnostics.checks.coupon?.livemode ?? "unknown"),
       apiKeyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 7) || "not set",
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorDetails: DiagnosticsPayload["error"] = {
+      message: "Unknown error",
+    };
+
+    if (error instanceof Stripe.errors.StripeError) {
+      errorDetails.message = error.message;
+      errorDetails.type = error.type;
+      errorDetails.code = error.code;
+      if (process.env.NODE_ENV === "development" && typeof error.stack === "string") {
+        errorDetails.stack = error.stack;
+      }
+    } else if (error instanceof Error) {
+      errorDetails.message = error.message;
+      errorDetails.type = error.name;
+      if (process.env.NODE_ENV === "development" && typeof error.stack === "string") {
+        errorDetails.stack = error.stack;
+      }
+    }
+
     diagnostics.error = {
-      message: error.message,
-      type: error.type,
-      code: error.code,
-      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      ...errorDetails,
     };
   }
 

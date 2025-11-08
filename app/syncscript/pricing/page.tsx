@@ -233,7 +233,7 @@ export default async function SyncscriptPricingPage() {
             <div>
               <h3 className="font-semibold mb-2">Scale as You Grow</h3>
               <p className="text-gray-600 text-sm">
-                From solo developer to enterprise team, we've got you covered at every stage.
+                From solo developer to enterprise team, we&apos;ve got you covered at every stage.
               </p>
             </div>
           </div>

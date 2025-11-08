@@ -19,7 +19,7 @@ if (redisUrl && redisToken) {
 function createRatelimit(limit: number, duration: Parameters<typeof Ratelimit.slidingWindow>[1], prefix: string) {
   if (!redis) {
     return {
-      async limit(_identifier?: string) {
+      async limit() {
         return { success: true } as const;
       },
     };

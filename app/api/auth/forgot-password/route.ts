@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       message: "If an account with that email exists, we've sent password reset instructions.",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.errors },

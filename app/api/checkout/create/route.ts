@@ -2,13 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { createResonanceCheckoutSession, createSyncscriptCheckoutSession } from "@/lib/stripe/checkout";
-import { stripe } from "@/lib/stripe/config";
+import { stripe, ResonanceLicenseType, SyncscriptLicenseType } from "@/lib/stripe/config";
 import { z } from "zod";
 
 const checkoutSchema = z.object({
   licenseType: z.string(),
   product: z.enum(["resonance", "syncscript"]).optional(), // Defaults to resonance for backward compatibility
 });
+
+const resonanceLicenseSchema = z.enum(["starter", "pro", "enterprise"]);
+const syncscriptLicenseSchema = z.enum(["pro", "team", "enterprise"]);
 
 /**
  * Create Stripe Checkout Session
@@ -52,16 +55,18 @@ export async function POST(req: NextRequest) {
     // Create checkout session based on product
     let checkoutSession;
     if (product === "resonance") {
+      const resonanceLicense = resonanceLicenseSchema.parse(licenseType) as ResonanceLicenseType;
       checkoutSession = await createResonanceCheckoutSession(
         session.user.id,
-        licenseType as any,
+        resonanceLicense,
         successUrl,
         cancelUrl
       );
     } else {
+      const syncscriptLicense = syncscriptLicenseSchema.parse(licenseType) as SyncscriptLicenseType;
       checkoutSession = await createSyncscriptCheckoutSession(
         session.user.id,
-        licenseType as any,
+        syncscriptLicense,
         successUrl,
         cancelUrl
       );
@@ -71,7 +76,7 @@ export async function POST(req: NextRequest) {
       sessionId: checkoutSession.id,
       url: checkoutSession.url,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.errors },
@@ -82,8 +87,8 @@ export async function POST(req: NextRequest) {
     console.error("Checkout creation error:", error);
     
     // Enhanced error logging
-    const errorMessage = error?.message || "Unknown error";
-    const errorName = error?.name || "Error";
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorName = error instanceof Error ? error.name : "Error";
     
     console.error("Checkout error details:", {
       name: errorName,
@@ -98,7 +103,7 @@ export async function POST(req: NextRequest) {
         message: errorMessage,
         name: errorName,
         ...(process.env.NODE_ENV === "development" && {
-          stack: error?.stack?.split("\n").slice(0, 5).join("\n"),
+          stack: error instanceof Error ? error.stack?.split("\n").slice(0, 5).join("\n") : undefined,
         }),
       },
       { status: 500 }

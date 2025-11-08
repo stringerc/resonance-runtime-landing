@@ -58,7 +58,7 @@ export default function ContactPage() {
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Contact Us</h1>
           <p className="text-gray-600 mb-8">
-            Have a question? Send us a message and we'll get back to you as soon as possible.
+            Have a question? Send us a message and we&apos;ll get back to you as soon as possible.
           </p>
 
           {submitted ? (
@@ -82,7 +82,7 @@ export default function ContactPage() {
                     Message Sent!
                   </h3>
                   <p className="text-green-700">
-                    Thank you for contacting us. We'll get back to you soon.
+                    Thank you for contacting us. We&apos;ll get back to you soon.
                   </p>
                 </div>
               </div>

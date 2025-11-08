@@ -141,63 +141,6 @@ export default function CanaryDashboard() {
     
     return filtered;
   };
-    const tailGood = m.tailHealthScore !== null && m.tailHealthScore !== undefined && m.tailHealthScore >= 0.5;
-    const timingGood = m.timingScore !== null && m.timingScore !== undefined && m.timingScore >= 0.5;
-
-    let mainInsight = '';
-    let confidence = 95;
-
-    if (mode === 'adaptive' && inBand && entropyOptimal) {
-      if (hasCalculus) {
-        const components = [];
-        if (coherenceGood) components.push('coherence');
-        if (tailGood) components.push('tail health');
-        if (timingGood) components.push('timing');
-        const componentText = components.length > 0 
-          ? `Resonance Calculus shows strong ${components.join(', ')}. `
-          : 'Resonance Calculus components need attention. ';
-        mainInsight = `System performance optimal. R(t) at ${m.R.toFixed(2)} within target band [0.35, 0.65]. ${componentText}Controller in adaptive mode managing traffic. ${m.latencyImprovement ? `Latency improved ${m.latencyImprovement}%` : 'Monitoring in progress'}.`;
-      } else {
-        mainInsight = `System performance optimal. R(t) at ${m.R.toFixed(2)} within target band [0.35, 0.65]. Controller in adaptive mode managing traffic. ${m.latencyImprovement ? `Latency improved ${m.latencyImprovement}%` : 'Monitoring in progress'}.`;
-      }
-      confidence = 95;
-    } else if (mode === 'adaptive' && !inBand) {
-      if (hasCalculus) {
-        const weakComponents = [];
-        if (!coherenceGood) weakComponents.push('coherence');
-        if (!tailGood) weakComponents.push('tail health');
-        if (!timingGood) weakComponents.push('timing');
-        const componentText = weakComponents.length > 0 
-          ? ` Resonance Calculus indicates weak ${weakComponents.join(', ')}.`
-          : '';
-        mainInsight = `R(t) at ${m.R.toFixed(2)} outside target band.${componentText} Controller adjusting coupling K(t) to ${m.K.toFixed(2)}. Monitor closely.`;
-      } else {
-        mainInsight = `R(t) at ${m.R.toFixed(2)} outside target band. Controller adjusting coupling K(t) to ${m.K.toFixed(2)}. Monitor closely.`;
-      }
-      confidence = 85;
-    } else {
-      mainInsight = `System in ${mode} mode. Monitoring metrics and controller behavior.`;
-      confidence = 80;
-    }
-
-    const supporting: Array<{ title: string; value: string; status: 'good' | 'warning' | 'critical' }> = [
-      {
-        title: 'R(t) & Target Band',
-        value: `${m.R.toFixed(2)} (target: [0.35, 0.65])`,
-        status: inBand ? 'good' : 'warning'
-      },
-      {
-        title: 'Spectral Entropy',
-        value: `${m.spectralEntropy.toFixed(2)} ${entropyOptimal ? '✓ Balanced' : '⚠ Monitor'}`,
-        status: entropyOptimal ? 'good' : 'warning'
-      },
-      {
-        title: 'Controller Mode',
-        value: `${mode.charAt(0).toUpperCase() + mode.slice(1)} (K=${m.K.toFixed(2)})`,
-        status: mode === 'adaptive' ? 'good' : 'warning'
-      }
-    ];
-
   const getModeColor = (mode: string) => {
     switch (mode) {
       case 'adaptive': return 'text-blue-600';

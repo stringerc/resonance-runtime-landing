@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, ChangeEvent } from 'react';
 import Link from 'next/link';
 import ResonanceInsights from '@/components/ResonanceInsights';
 
@@ -36,6 +36,7 @@ interface Metrics {
 }
 
 type TimeInterval = 'realtime' | 'hourly' | 'daily' | 'monthly' | 'quarterly' | 'yearly';
+type ComponentSelection = 'coherence' | 'tail' | 'timing' | 'all';
 
 export default function ResonanceCalculusPage() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
@@ -49,7 +50,14 @@ export default function ResonanceCalculusPage() {
     lambdaRes?: number | null;
   }>>([]);
   const [timeInterval, setTimeInterval] = useState<TimeInterval>('daily');
-  const [selectedComponent, setSelectedComponent] = useState<'coherence' | 'tail' | 'timing' | 'all'>('all');
+  const [selectedComponent, setSelectedComponent] = useState<ComponentSelection>('all');                                                   
+
+  const handleComponentChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const { value } = event.target;
+    if (value === 'coherence' || value === 'tail' || value === 'timing' || value === 'all') {
+      setSelectedComponent(value);
+    }
+  };
 
   const overallBandCompliance = useMemo(() => {
     if (!history.length) {
@@ -451,7 +459,7 @@ export default function ResonanceCalculusPage() {
                 <span className="text-sm text-gray-600">View:</span>
                 <select
                   value={selectedComponent}
-                  onChange={(e) => setSelectedComponent(e.target.value as any)}
+                  onChange={handleComponentChange}
                   className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
                 >
                   <option value="all">All Components</option>

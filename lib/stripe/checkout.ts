@@ -1,4 +1,4 @@
-import { stripe, getResonancePriceId, getSyncscriptPriceId, ProductType, ResonanceLicenseType, SyncscriptLicenseType } from "./config";
+import { stripe, getResonancePriceId, getSyncscriptPriceId, ResonanceLicenseType, SyncscriptLicenseType } from "./config";
 
 /**
  * Create Stripe Checkout Session for Resonance

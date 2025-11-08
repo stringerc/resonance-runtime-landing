@@ -2,12 +2,12 @@ import Stripe from "stripe";
 
 // Initialize Stripe only if secret key is available (handles build-time gracefully)
 // This allows the build to complete even if Stripe keys aren't set
-export const stripe = process.env.STRIPE_SECRET_KEY
+export const stripe: Stripe | null = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: "2023-10-16", // Stripe API version
       typescript: true,
     })
-  : (null as any); // Type assertion for build-time
+  : null;
 
 // Publishable key (optional for build)
 export const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";

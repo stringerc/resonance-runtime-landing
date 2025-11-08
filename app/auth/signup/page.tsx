@@ -44,7 +44,8 @@ export default function SignUpPage() {
         // Redirect to sign in
         router.push("/auth/signin?registered=true");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      console.error("Sign-up failed:", err);
       setError("An error occurred. Please try again.");
     } finally {
       setLoading(false);

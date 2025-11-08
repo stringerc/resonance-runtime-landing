@@ -6,7 +6,7 @@ import { hashPassword } from "./password";
 /**
  * Generate TOTP secret for a user
  */
-export function generateTOTPSecret(email: string): string {
+export function generateTOTPSecret(): string {
   return authenticator.generateSecret();
 }
 

@@ -22,13 +22,16 @@ export async function GET() {
       test: result,
       user: user || "User not found",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorCode = typeof error === "object" && error && "code" in error ? (error as { code?: string | number }).code : undefined;
+    const details = error instanceof Error ? error.toString() : String(error);
     return NextResponse.json(
       {
         success: false,
-        error: error.message,
-        code: error.code,
-        details: error.toString(),
+        error: errorMessage,
+        code: errorCode,
+        details,
       },
       { status: 500 }
     );

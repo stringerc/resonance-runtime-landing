@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
       message: "User registered successfully",
       user,
     }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.errors },

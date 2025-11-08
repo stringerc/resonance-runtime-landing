@@ -1,5 +1,73 @@
 import { NextResponse } from 'next/server';
 
+interface ParsedMetrics {
+  R: number | null;
+  K: number | null;
+  spectralEntropy: number | null;
+  mode: string | null;
+  modeValue: number | null;
+  p99Latency: number | null;
+  p50Latency: number | null;
+  coherenceScore: number | null;
+  tailHealthScore: number | null;
+  timingScore: number | null;
+  lambdaRes: number | null;
+  gpd: {
+    xi: number | null;
+    sigma: number | null;
+    threshold: number | null;
+  } | null;
+  tailQuantiles: {
+    q99: number | null;
+    q99_9: number | null;
+  } | null;
+}
+
+interface MetricsResponsePayload extends ParsedMetrics {
+  R: number;
+  K: number;
+  spectralEntropy: number;
+  mode: string;
+  modeValue: number | null;
+  p99Latency: number | null;
+  p50Latency: number | null;
+  timestamp: string;
+  agentUrl: string;
+  agentConnected: boolean;
+  environment: 'production' | 'development';
+  latencyImprovement?: number | null;
+  error?: string;
+  mock?: boolean;
+}
+
+type HealthResponse = {
+  resonance?: Record<string, unknown>;
+  timestamp?: string;
+  [key: string]: unknown;
+};
+
+const toNumber = (value: string | number | null | undefined): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const toInteger = (value: string | number | null | undefined): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.trunc(value);
+  }
+  if (typeof value === 'string') {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
 // Mark as dynamic to prevent static generation
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -65,10 +133,10 @@ export async function GET() {
       throw new Error('Agent health endpoint not accessible');
     }
 
-    const healthData = await healthResponse.json();
+    const healthData = (await healthResponse.json()) as HealthResponse;
 
     // Fetch metrics endpoint
-    let metricsData = null;
+    let metricsData: ParsedMetrics | null = null;
     try {
       if (!agentMetricsUrl) {
         throw new Error('Metrics URL not configured');
@@ -114,45 +182,63 @@ export async function GET() {
         const tailQ99_9Match = metricsText.match(/resonance_tail_q99_9\s+([\d.]+)/);
 
         metricsData = {
-          R: RMatch ? parseFloat(RMatch[1]) : null,
-          K: KMatch ? parseFloat(KMatch[1]) : null,
-          spectralEntropy: entropyMatch ? parseFloat(entropyMatch[1]) : null,
+          R: toNumber(RMatch?.[1]),
+          K: toNumber(KMatch?.[1]),
+          spectralEntropy: toNumber(entropyMatch?.[1]),
           mode: modeMatch ? modeMatch[1] : null,
-          modeValue: modeMatch ? parseInt(modeMatch[2]) : null,
-          p99Latency: p99Match ? parseFloat(p99Match[1]) : null,
-          p50Latency: p50Match ? parseFloat(p50Match[1]) : null,
+          modeValue: toInteger(modeMatch?.[2]),
+          p99Latency: toNumber(p99Match?.[1]),
+          p50Latency: toNumber(p50Match?.[1]),
           // Resonance Calculus metrics (optional)
-          coherenceScore: coherenceScoreMatch ? parseFloat(coherenceScoreMatch[1]) : null,
-          tailHealthScore: tailHealthScoreMatch ? parseFloat(tailHealthScoreMatch[1]) : null,
-          timingScore: timingScoreMatch ? parseFloat(timingScoreMatch[1]) : null,
-          lambdaRes: lambdaResMatch ? parseFloat(lambdaResMatch[1]) : null,
+          coherenceScore: toNumber(coherenceScoreMatch?.[1]),
+          tailHealthScore: toNumber(tailHealthScoreMatch?.[1]),
+          timingScore: toNumber(timingScoreMatch?.[1]),
+          lambdaRes: toNumber(lambdaResMatch?.[1]),
           gpd: (gpdXiMatch || gpdSigmaMatch || gpdThresholdMatch) ? {
-            xi: gpdXiMatch ? parseFloat(gpdXiMatch[1]) : null,
-            sigma: gpdSigmaMatch ? parseFloat(gpdSigmaMatch[1]) : null,
-            threshold: gpdThresholdMatch ? parseFloat(gpdThresholdMatch[1]) : null,
+            xi: toNumber(gpdXiMatch?.[1]),
+            sigma: toNumber(gpdSigmaMatch?.[1]),
+            threshold: toNumber(gpdThresholdMatch?.[1]),
           } : null,
           tailQuantiles: (tailQ99Match || tailQ99_9Match) ? {
-            q99: tailQ99Match ? parseFloat(tailQ99Match[1]) : null,
-            q99_9: tailQ99_9Match ? parseFloat(tailQ99_9Match[1]) : null,
+            q99: toNumber(tailQ99Match?.[1]),
+            q99_9: toNumber(tailQ99_9Match?.[1]),
           } : null,
         };
       }
-    } catch (e) {
+    } catch {
       console.warn('Metrics endpoint not accessible, using health data only');
     }
 
     // Combine health and metrics data
-    const resonance = healthData.resonance || {};
-    
-    const response: any = {
-      R: metricsData?.R ?? parseFloat(resonance.R) ?? 0.5,
-      K: metricsData?.K ?? parseFloat(resonance.K) ?? 0.3,
-      spectralEntropy: metricsData?.spectralEntropy ?? parseFloat(resonance.entropy) ?? 0.5,
-      mode: metricsData?.mode ?? resonance.mode ?? 'adaptive',
-      modeValue: metricsData?.modeValue ?? (resonance.mode === 'adaptive' ? 2 : 1),
-      p99Latency: metricsData?.p99Latency ?? resonance.p99Latency ?? null,
-      p50Latency: metricsData?.p50Latency ?? resonance.p50Latency ?? null,
-      timestamp: healthData.timestamp || new Date().toISOString(),
+    const resonanceData = (healthData.resonance ?? {}) as Record<string, unknown>;
+
+    const derivedMode =
+      metricsData?.mode ??
+      (typeof resonanceData.mode === 'string' ? (resonanceData.mode as string) : 'adaptive');
+
+    const derivedModeValue =
+      metricsData?.modeValue ??
+      toInteger(resonanceData.modeValue as string | number | null | undefined) ??
+      (derivedMode === 'adaptive' ? 2 : 1);
+
+    const response: MetricsResponsePayload = {
+      R: metricsData?.R ?? toNumber(resonanceData.R as string | number | null | undefined) ?? 0.5,
+      K: metricsData?.K ?? toNumber(resonanceData.K as string | number | null | undefined) ?? 0.3,
+      spectralEntropy:
+        metricsData?.spectralEntropy ??
+        toNumber(resonanceData.entropy as string | number | null | undefined) ??
+        0.5,
+      mode: derivedMode,
+      modeValue: derivedModeValue,
+      p99Latency:
+        metricsData?.p99Latency ??
+        toNumber(resonanceData.p99Latency as string | number | null | undefined),
+      p50Latency:
+        metricsData?.p50Latency ??
+        toNumber(resonanceData.p50Latency as string | number | null | undefined),
+      timestamp:
+        (typeof healthData.timestamp === 'string' ? healthData.timestamp : null) ??
+        new Date().toISOString(),
       agentUrl: agentHealthUrl,
       agentConnected: true,
       environment: isProduction ? 'production' : 'development',
@@ -178,7 +264,7 @@ export async function GET() {
         'Expires': '0',
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching metrics:', error);
     
     // Return default/mock data if agent is not accessible

@@ -56,7 +56,7 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             image: user.image,
             mfaRequired: true,
-          } as any;
+          };
         }
         
         return {
@@ -85,7 +85,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.email = user.email;
-        token.mfaRequired = (user as any).mfaRequired || false;
+        token.mfaRequired = "mfaRequired" in user ? Boolean(user.mfaRequired) : false;
       }
       return token;
     },
@@ -93,7 +93,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
-        (session.user as any).mfaRequired = token.mfaRequired as boolean;
+        session.user.mfaRequired = token.mfaRequired ?? false;
       }
       return session;
     },

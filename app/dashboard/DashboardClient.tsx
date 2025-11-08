@@ -31,9 +31,10 @@ export default function DashboardClient() {
           setStatus('offline');
           setError(`HTTP ${response.status}`);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         setStatus('offline');
-        setError(error.message || 'Connection failed');
+        const message = error instanceof Error ? error.message : 'Connection failed';
+        setError(message);
         console.error('Agent status check failed:', error);
       }
     };

@@ -33,7 +33,8 @@ export default function ForgotPasswordPage() {
           text: data.error || 'Something went wrong. Please try again.',
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Forgot password request failed:', error);
       setMessage({
         type: 'error',
         text: 'Network error. Please try again.',

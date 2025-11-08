@@ -109,7 +109,7 @@ export default async function PricingPage() {
             Simple, Transparent Pricing
           </h1>
           <p className="text-xl text-gray-600 mb-2">
-            Choose the plan that's right for you
+            Choose the plan that&apos;s right for you
           </p>
           <p className="text-sm text-gray-500 max-w-xl mx-auto">
             Lock in our launch pricing today. Prices will increase to standard rates after the first 100 customers or by March 31, 2025.

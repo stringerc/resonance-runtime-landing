@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/db";
@@ -7,7 +7,7 @@ import { prisma } from "@/lib/db";
  * Get user's license information
  * GET /api/dashboard/license
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Get session - NextAuth should automatically read cookies
     const session = await getServerSession(authOptions);
@@ -51,10 +51,10 @@ export async function GET(req: NextRequest) {
       userId: session.user.id,
       email: session.user.email,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("License fetch error:", error);
     return NextResponse.json(
-      { error: error.message },
+      { error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 }
     );
   }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
 import { verifyWebhook, isEventProcessed, markEventProcessed, handleStripeEvent } from "@/lib/stripe/webhooks";
 
 /**
@@ -25,13 +26,14 @@ export async function POST(req: NextRequest) {
     }
     
     // Verify webhook signature
-    let event;
+    let event: Stripe.Event;
     try {
       event = await verifyWebhook(body, signature);
-    } catch (err: any) {
-      console.error(`Webhook signature verification failed: ${err.message}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown signature error";
+      console.error(`Webhook signature verification failed: ${message}`);
       return NextResponse.json(
-        { error: `Webhook Error: ${err.message}` },
+        { error: `Webhook Error: ${message}` },
         { status: 400 }
       );
     }
@@ -51,7 +53,7 @@ export async function POST(req: NextRequest) {
       await markEventProcessed(event.id, event.type, event);
       
       return NextResponse.json({ received: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error processing webhook:", error);
       
       // Mark as failed (but don't throw - Stripe will retry)
@@ -62,7 +64,7 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Webhook handler error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
