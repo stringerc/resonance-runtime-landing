@@ -1,34 +1,58 @@
+:root {
+  --color-brand-950: #070f2e;
+  --color-brand-900: #0f255f;
+  --color-brand-500: #3f67f5;
+  --color-brand-300: #99b3ff;
+  --color-accent-500: #10b981;
+  --color-surface-900: #1d2133;
+  --color-surface-800: #343a51;
+  --color-surface-700: #414865;
+  --color-neutral-50: #f8fafc;
+  --shadow-glow: 0 0 0 1px rgba(63, 103, 245, 0.22), 0 30px 60px -20px rgba(15, 37, 95, 0.45);
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.75rem;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    background-color: var(--color-surface-900);
+    color: #e2e8f0;
   }
-}
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(63, 103, 245, 0.12), transparent 55%),
+      radial-gradient(circle at 80% 10%, rgba(16, 185, 129, 0.12), transparent 60%),
+      linear-gradient(180deg, rgba(7, 15, 46, 0.96) 0%, rgba(13, 24, 63, 0.86) 45%, rgba(13, 24, 63, 0.95) 100%),
+      var(--color-surface-900);
+    color: #e2e8f0;
+    font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .shadow-brand-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .bg-brand-gradient {
+    background: linear-gradient(135deg, var(--color-brand-900) 0%, var(--color-brand-500) 50%, var(--color-accent-500) 100%);
   }
 }
 
