@@ -22,6 +22,7 @@ interface ResonanceInsightsProps {
   band?: BandComplianceSummary;
   latestSampleTime?: number | null;
   latencyPresent?: boolean;
+  layout?: "sidebar" | "panel";
 }
 
 type StatusLevel = "good" | "warning" | "critical";
@@ -208,7 +209,13 @@ function describeLatency(hasLatency?: boolean, p99?: number | null) {
   };
 }
 
-export default function ResonanceInsights({ metrics, band, latestSampleTime, latencyPresent }: ResonanceInsightsProps) {
+export default function ResonanceInsights({
+  metrics,
+  band,
+  latestSampleTime,
+  latencyPresent,
+  layout = "sidebar",
+}: ResonanceInsightsProps) {
   const resonance = describeResonance(metrics?.R);
   const compliance = describeCompliance(band);
   const coherence = describeCoherence(metrics?.coherenceScore);
@@ -225,10 +232,18 @@ export default function ResonanceInsights({ metrics, band, latestSampleTime, lat
     <aside
       id="metric-glossary"
       aria-label="Resonance insights"
-      className="lg:w-80 xl:w-96 lg:pl-6 mt-8 lg:mt-0"
+      className={clsx(
+        layout === "sidebar" ? "lg:w-80 xl:w-96 lg:pl-6 mt-8 lg:mt-0" : "w-full",
+        layout === "panel" && "mt-0"
+      )}
     >
-      <div className="sticky top-24 space-y-4">
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4">
+      <div className={clsx(layout === "sidebar" ? "sticky top-24 space-y-4" : "space-y-4")}>
+        <div
+          className={clsx(
+            "border border-gray-200 rounded-xl shadow-sm p-6 space-y-4",
+            layout === "panel" ? "bg-white" : "bg-white"
+          )}
+        >
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Resonance Insights</h2>
             <p className="text-sm text-gray-600">

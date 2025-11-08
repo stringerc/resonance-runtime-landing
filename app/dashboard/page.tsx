@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth/config";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
+import ResonanceInsights from "@/components/ResonanceInsights";
 import DashboardClient from "./DashboardClient";
 
 export default async function DashboardPage() {
@@ -24,6 +25,64 @@ export default async function DashboardPage() {
     orderBy: { timestamp: "desc" },
     take: 10,
   });
+  const orderedMetrics = [...recentMetrics].reverse();
+
+  const resonanceHistory = orderedMetrics
+    .map((metric) => {
+      const data = metric.data as Record<string, any> | null;
+      const value = typeof data?.R === "number" ? data.R : null;
+      return value !== null ? { time: metric.timestamp.getTime(), value } : null;
+    })
+    .filter((point): point is { time: number; value: number } => point !== null);
+
+  const bandComplianceOverview = resonanceHistory.length
+    ? {
+        percentage:
+          (resonanceHistory.filter((point) => point.value >= 0.35 && point.value <= 0.65).length / resonanceHistory.length) *
+          100,
+        inBand: resonanceHistory.filter((point) => point.value >= 0.35 && point.value <= 0.65).length,
+        total: resonanceHistory.length,
+      }
+    : { percentage: 0, inBand: 0, total: 0 };
+
+  const latestSampleTime = resonanceHistory.length ? resonanceHistory[resonanceHistory.length - 1].time : null;
+  const latestMetric = recentMetrics[0];
+  const latestData = latestMetric?.data as Record<string, any> | undefined;
+  const insightMetrics = latestData
+    ? {
+        R: typeof latestData.R === "number" ? latestData.R : undefined,
+        spectralEntropy:
+          typeof latestData.spectralEntropy === "number" ? latestData.spectralEntropy : latestData.spectralEntropy ?? null,
+        coherenceScore:
+          typeof latestData.coherenceScore === "number" ? latestData.coherenceScore : latestData.coherenceScore ?? null,
+        tailHealthScore:
+          typeof latestData.tailHealthScore === "number" ? latestData.tailHealthScore : latestData.tailHealthScore ?? null,
+        timingScore:
+          typeof latestData.timingScore === "number" ? latestData.timingScore : latestData.timingScore ?? null,
+        lambdaRes: typeof latestData.lambdaRes === "number" ? latestData.lambdaRes : latestData.lambdaRes ?? null,
+        p99Latency:
+          typeof latestData.p99Latency === "number" ? latestData.p99Latency : latestData.p99Latency ?? null,
+        p50Latency:
+          typeof latestData.p50Latency === "number" ? latestData.p50Latency : latestData.p50Latency ?? null,
+      }
+    : null;
+
+  const latencyPresent = typeof latestData?.p99Latency === "number";
+
+  const extractSeries = (key: string): number[] =>
+    orderedMetrics
+      .map((metric) => {
+        const value = (metric.data as Record<string, any> | null)?.[key];
+        return typeof value === "number" ? value : null;
+      })
+      .filter((value): value is number => value !== null);
+
+  const rSeries = resonanceHistory.map((point) => point.value);
+  const entropySeries = extractSeries("spectralEntropy");
+  const coherenceSeries = extractSeries("coherenceScore");
+  const tailSeries = extractSeries("tailHealthScore");
+  const latencySeries = extractSeries("p99Latency");
+
 
   // Fetch payments history
   const payments = await prisma.payment.findMany({
@@ -214,6 +273,75 @@ export default async function DashboardPage() {
           </div>
         )}
 
+        {/* Health Overview */}
+        {insightMetrics && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Health Overview</h2>
+              <span className="text-xs uppercase tracking-wide text-gray-500">
+                Last sample{" "}
+                {latestMetric?.timestamp
+                  ? new Date(latestMetric.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                  : "N/A"}
+              </span>
+            </div>
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <ResonanceInsights
+                  layout="panel"
+                  metrics={insightMetrics}
+                  band={bandComplianceOverview}
+                  latestSampleTime={latestSampleTime}
+                  latencyPresent={latencyPresent}
+                />
+              </div>
+              <div className="space-y-4">
+                <OverviewCard
+                  title="Global Resonance R(t)"
+                  value={insightMetrics.R ?? null}
+                  formatter={(value) => formatDecimal(value, 3)}
+                  series={rSeries}
+                  color="#3b82f6"
+                  helperText={`Band compliance ${bandComplianceOverview.percentage.toFixed(1)}%`}
+                />
+                <OverviewCard
+                  title="Spectral Entropy"
+                  value={insightMetrics.spectralEntropy ?? null}
+                  formatter={(value) => formatDecimal(value, 3)}
+                  series={entropySeries}
+                  color="#8b5cf6"
+                  helperText="Target range 0.40 – 0.60"
+                />
+                <OverviewCard
+                  title="Coherence Score"
+                  value={insightMetrics.coherenceScore ?? null}
+                  formatter={formatPercent}
+                  series={coherenceSeries}
+                  color="#14b8a6"
+                  helperText="CWSC synchrony"
+                />
+                <OverviewCard
+                  title="Tail Health"
+                  value={insightMetrics.tailHealthScore ?? null}
+                  formatter={formatPercent}
+                  series={tailSeries}
+                  color="#10b981"
+                  helperText="EVT / GPD fit"
+                />
+                <OverviewCard
+                  title="Latency p99"
+                  value={insightMetrics.p99Latency ?? null}
+                  formatter={formatLatency}
+                  series={latencySeries}
+                  color="#f97316"
+                  helperText="Provide latency feed to unlock tail analysis"
+                  emptyLabel="Latency feed missing"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions */}
         {license && license.status === "ACTIVE" && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
@@ -246,25 +374,43 @@ export default async function DashboardPage() {
 
         {/* Metrics Section */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold mb-4">Recent Metrics</h2>
-          {recentMetrics.length > 0 ? (
-            <div className="space-y-4">
-              {recentMetrics.map((metric) => (
-                <div
-                  key={metric.id}
-                  className="border-b border-gray-200 pb-4 last:border-b-0"
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">
-                      {new Date(metric.timestamp).toLocaleString()}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      {JSON.stringify(metric.data)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Recent Metrics</h2>
+            {resonanceHistory.length > 0 && (
+              <span className="text-xs text-gray-500">
+                Showing last {resonanceHistory.length} samples
+              </span>
+            )}
+          </div>
+          {resonanceHistory.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                {recentMetrics.map((metric) => {
+                  const data = metric.data as Record<string, any> | null;
+                  return (
+                    <div key={metric.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                        <span>{new Date(metric.timestamp).toLocaleString()}</span>
+                        <span className="font-medium text-gray-700">
+                          R(t): {typeof data?.R === "number" ? data.R.toFixed(3) : "—"}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-600">
+                        <MetricValue label="Entropy" value={data?.spectralEntropy} formatter={(value) => formatDecimal(value, 3)} />
+                        <MetricValue label="Coherence" value={data?.coherenceScore} formatter={formatPercent} />
+                        <MetricValue label="Tail Health" value={data?.tailHealthScore} formatter={formatPercent} />
+                        <MetricValue label="Timing" value={data?.timingScore} formatter={formatPercent} />
+                        <MetricValue label="λ_res" value={data?.lambdaRes} formatter={(value) => formatDecimal(value, 3)} />
+                        <MetricValue label="p99 latency" value={data?.p99Latency} formatter={formatLatency} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="text-xs text-gray-500">
+                Historical samples are stored as part of your Resonance history. For deeper analysis open the Canary or Resonance Calculus dashboards.
+              </div>
+            </>
           ) : (
             <div className="text-center py-8">
               <p className="text-gray-600 mb-4">
@@ -282,6 +428,129 @@ export default async function DashboardPage() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function formatDecimal(value: number | null | undefined, digits = 3) {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return "—";
+  }
+  return Number(value).toFixed(digits);
+}
+
+function formatPercent(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return "—";
+  }
+  return `${(value * 100).toFixed(1)}%`;
+}
+
+function formatLatency(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return "—";
+  }
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(2)} s`;
+  }
+  return `${Math.round(value)} ms`;
+}
+
+interface OverviewCardProps {
+  title: string;
+  value: number | null | undefined;
+  formatter?: (value: number | null | undefined) => string;
+  series: number[];
+  color: string;
+  helperText?: string;
+  emptyLabel?: string;
+}
+
+function OverviewCard({
+  title,
+  value,
+  formatter = (v) => formatDecimal(v, 3),
+  series,
+  color,
+  helperText,
+  emptyLabel = "No samples yet",
+}: OverviewCardProps) {
+  const displayValue = formatter(value);
+  return (
+    <div className="border border-gray-200 rounded-lg p-4 shadow-sm bg-white">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
+      </div>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <div className="text-2xl font-bold text-gray-900">{displayValue}</div>
+          {helperText && <p className="text-xs text-gray-500 mt-1">{helperText}</p>}
+        </div>
+        <div className="flex-1">
+          {series.length > 1 ? (
+            <Sparkline series={series} color={color} />
+          ) : (
+            <div className="text-xs text-gray-400 text-right">{emptyLabel}</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface SparklineProps {
+  series: number[];
+  color: string;
+}
+
+function Sparkline({ series, color }: SparklineProps) {
+  const width = 140;
+  const height = 50;
+  const safeSeries = series.length === 1 ? [...series, series[0]] : series;
+  const min = Math.min(...safeSeries);
+  const max = Math.max(...safeSeries);
+  const range = max - min || 1;
+
+  const points = safeSeries
+    .map((value, index) => {
+      const x = (index / (safeSeries.length - 1)) * width;
+      const y = height - ((value - min) / range) * height;
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      className="w-full h-16"
+      role="img"
+      aria-label="Trend over recent samples"
+    >
+      <polyline
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        points={points}
+      />
+    </svg>
+  );
+}
+
+interface MetricValueProps {
+  label: string;
+  value: number | null | undefined;
+  formatter?: (value: number | null | undefined) => string;
+}
+
+function MetricValue({ label, value, formatter = (val) => formatDecimal(val, 3) }: MetricValueProps) {
+  return (
+    <div>
+      <div className="text-xs uppercase tracking-wide text-gray-400">{label}</div>
+      <div className="text-sm font-medium text-gray-900">{formatter(value)}</div>
     </div>
   );
 }
