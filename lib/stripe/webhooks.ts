@@ -16,18 +16,23 @@ const normalizeResonanceLicenseType = (licenseType?: string | null): ResonanceLi
   if (!licenseType) {
     return null;
   }
-  const normalized = licenseType.toLowerCase() as ResonanceLicenseType;
-  return normalized === "starter" || normalized === "pro" || normalized === "enterprise" ? normalized : null;
+  const normalized = licenseType.toUpperCase();
+  if (normalized === "STARTER" || normalized === "PRO" || normalized === "ENTERPRISE") {
+    return normalized as ResonanceLicenseType;
+  }
+  return null;
 };
 
 const toLegacyLicenseType = (licenseType: ResonanceLicenseType): LicenseType => {
   switch (licenseType) {
-    case "starter":
+    case "STARTER":
       return LicenseType.BASIC;
-    case "pro":
+    case "PRO":
       return LicenseType.PRO;
-    case "enterprise":
+    case "ENTERPRISE":
       return LicenseType.ENTERPRISE;
+    default:
+      return LicenseType.BASIC;
   }
 };
 

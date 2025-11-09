@@ -39,8 +39,12 @@ export default function DashboardChrome({
 }: DashboardChromeProps) {
   const pathname = usePathname();
 
-  const isActive = (href: string) =>
-    pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
+  const isActive = (href: string) => {
+    if (!pathname) {
+      return false;
+    }
+    return pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
+  };
 
   return (
     <div className="min-h-screen bg-surface-900 text-neutral-50">
