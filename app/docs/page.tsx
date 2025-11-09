@@ -7,6 +7,11 @@ const docLinks = [
     href: "/docs/quickstart",
   },
   {
+    title: "Agent Setup",
+    description: "Install, configure, and tune the Resonance agent on your infrastructure.",
+    href: "/docs/agent-setup",
+  },
+  {
     title: "Trust Center",
     description: "Security baseline, signing guarantees, and incident escalation paths.",
     href: "/docs/trust",
