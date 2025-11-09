@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -11,6 +11,10 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setError("");
+  }, [email, password]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,130 +29,136 @@ export default function SignInPage() {
       });
 
       if (result?.error) {
-        setError(result.error);
+        setError(result.error || "Unable to sign in. Please check your credentials.");
       } else if (result?.ok) {
         router.push("/dashboard");
         router.refresh();
+      } else {
+        setError("Unable to sign in. Please try again.");
       }
     } catch (err: unknown) {
       console.error("Sign-in failed:", err);
-      setError("An error occurred. Please try again.");
+      setError("Something went wrong while signing in. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Link href="/" className="flex justify-center">
-          <span className="text-3xl font-bold text-primary-600">
-            Resonance Calculus
-          </span>
-        </Link>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to your account
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Or{" "}
-          <Link
-            href="/auth/signup"
-            className="font-medium text-primary-600 hover:text-primary-500"
-          >
-            create a new account
+    <div className="min-h-screen bg-surface-900 text-neutral-100 flex flex-col lg:flex-row">
+      <aside className="hidden lg:flex lg:w-1/2 xl:w-7/12 flex-col justify-between bg-surface-900/80 border-r border-surface-800 px-12 py-10">
+        <div>
+          <Link href="/" className="inline-flex items-center gap-2 text-brand-100 text-lg font-semibold hover:text-brand-50 transition">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-gradient text-neutral-900 font-bold">R</span>
+            Resonance Platform
           </Link>
-        </p>
-      </div>
+          <div className="mt-16 space-y-6 max-w-xl">
+            <h1 className="text-4xl font-bold text-neutral-50 leading-tight">
+              Stay in tune with your production systems.
+            </h1>
+            <p className="text-neutral-300 text-base leading-relaxed">
+              Authenticate to unlock Resonance Calculus dashboards, guided onboarding, and live AI insights. Keep the agent streaming for
+              steady compliance and actionable guidance.
+            </p>
+            <div className="rounded-2xl border border-brand-400/20 bg-brand-500/10 px-5 py-4 text-sm text-brand-100">
+              <p className="font-semibold">Need access?</p>
+              <p className="mt-1 text-brand-50/80">
+                Contact your workspace admin or start a free trial from the pricing page. Multi-factor authentication is supported when enabled on your account.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="text-sm text-neutral-500">
+          <p>Secure session handling via NextAuth • Encrypted at rest • SOC 2-ready controls</p>
+        </div>
+      </aside>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+      <main className="flex-1 flex items-center justify-center px-6 py-12 sm:px-8">
+        <div className="w-full max-w-md">
+          <div className="bg-surface-900/80 border border-surface-800 rounded-2xl shadow-brand-glow p-8 sm:p-10">
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold text-neutral-50">Sign in</h2>
+              <p className="mt-2 text-sm text-neutral-400">
+                Welcome back. Enter your credentials to access analytics and automation.
+              </p>
+            </div>
+
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              <div className="mb-6 rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
                 {error}
               </div>
             )}
 
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Email address
-              </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                />
+            <form className="space-y-5" onSubmit={handleSubmit}>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-neutral-200">
+                  Email address
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="block w-full rounded-xl border border-surface-700 bg-surface-800/80 px-4 py-3 text-sm text-neutral-50 placeholder-neutral-500 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/40"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                />
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-neutral-200">
+                  Password
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="block w-full rounded-xl border border-surface-700 bg-surface-800/80 px-4 py-3 text-sm text-neutral-50 placeholder-neutral-500 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/40"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                />
-                <label
-                  htmlFor="remember-me"
-                  className="ml-2 block text-sm text-gray-900"
-                >
+              <div className="flex items-center justify-between text-sm">
+                <label htmlFor="remember-me" className="flex items-center gap-2 text-neutral-300">
+                  <input
+                    id="remember-me"
+                    name="remember-me"
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-surface-600 bg-surface-800 text-brand-400 focus:ring-brand-400"
+                  />
                   Remember me
                 </label>
-              </div>
-
-              <div className="text-sm">
-                <Link
-                  href="/auth/forgot-password"
-                  className="font-medium text-primary-600 hover:text-primary-500"
-                >
-                  Forgot your password?
+                <Link href="/auth/forgot-password" className="text-brand-200 hover:text-brand-100">
+                  Forgot password?
                 </Link>
               </div>
-            </div>
 
-            <div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-xl bg-brand-gradient py-3 text-sm font-semibold text-neutral-900 shadow-brand-glow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? "Signing in..." : "Sign in"}
               </button>
-            </div>
-          </form>
+            </form>
+
+            <p className="mt-6 text-center text-sm text-neutral-400">
+              New to Resonance?{" "}
+              <Link href="/auth/signup" className="font-semibold text-brand-200 hover:text-brand-100">
+                Create an account
+              </Link>
+            </p>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

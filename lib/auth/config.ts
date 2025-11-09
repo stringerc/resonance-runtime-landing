@@ -21,52 +21,62 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password required");
         }
-        
-        // Check account lockout
-        const lockout = await checkAccountLockout(credentials.email);
-        if (lockout.locked) {
-          throw new Error(`Account locked. Try again after ${lockout.unlockAt?.toLocaleTimeString()}`);
-        }
-        
-        // Find user
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
-        
-        if (!user || !user.passwordHash) {
-          await recordFailedLogin(credentials.email);
-          throw new Error("Invalid email or password");
-        }
-        
-        // Verify password
-        const isValid = await verifyPassword(credentials.password, user.passwordHash);
-        
-        if (!isValid) {
-          await recordFailedLogin(credentials.email);
-          throw new Error("Invalid email or password");
-        }
-        
-        // Reset failed login attempts on success
-        await resetFailedLogins(credentials.email);
-        
-        // Check if MFA is required
-        if (user.mfaEnabled) {
-          // Return user with MFA flag - frontend will handle MFA challenge
+        try {
+          // Check account lockout
+          const lockout = await checkAccountLockout(credentials.email);
+          if (lockout.locked) {
+            throw new Error(`Account locked. Try again after ${lockout.unlockAt?.toLocaleTimeString()}`);
+          }
+
+          // Find user
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+          });
+
+          if (!user || !user.passwordHash) {
+            await recordFailedLogin(credentials.email);
+            throw new Error("Invalid email or password");
+          }
+
+          // Verify password
+          const isValid = await verifyPassword(credentials.password, user.passwordHash);
+
+          if (!isValid) {
+            await recordFailedLogin(credentials.email);
+            throw new Error("Invalid email or password");
+          }
+
+          // Reset failed login attempts on success
+          await resetFailedLogins(credentials.email);
+
+          // Check if MFA is required
+          if (user.mfaEnabled) {
+            // Return user with MFA flag - frontend will handle MFA challenge
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              image: user.image,
+              mfaRequired: true,
+            };
+          }
+
           return {
             id: user.id,
             email: user.email,
             name: user.name,
             image: user.image,
-            mfaRequired: true,
           };
+        } catch (error: unknown) {
+          const message =
+            error instanceof Error && /connection (?:closed|terminated|error)/i.test(error.message)
+              ? "Authentication service is unavailable. Please try again shortly."
+              : error instanceof Error
+              ? error.message
+              : "Unable to sign in. Please try again.";
+          console.error("Credentials authorize error:", error);
+          throw new Error(message);
         }
-        
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-        };
       },
     }),
   ],

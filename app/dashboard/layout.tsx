@@ -65,7 +65,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const { license, lastMetricAt, uptimePercentage } = await fetchStatus(session.user.id);
   const licenseLabel =
     license?.status === "ACTIVE"
-      ? license?.type?.toLowerCase() ?? license?.resonanceType ?? "active"
+      ? license?.type?.toLowerCase() ?? license?.resonanceType?.toLowerCase() ?? "active"
       : license?.status?.toLowerCase() ?? "none";
 
   return (
