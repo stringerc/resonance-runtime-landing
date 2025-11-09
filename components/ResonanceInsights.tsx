@@ -261,7 +261,16 @@ export default function ResonanceInsights({
               title="Global Resonance R(t)"
               status={resonance.status}
               primary={metrics?.R ?? null}
-              primaryFormatter={(value) => (value === null ? "—" : value.toFixed(3))}
+              primaryFormatter={(value) => {
+                if (value === null || value === undefined) {
+                  return "—";
+                }
+                const numeric = typeof value === "number" ? value : Number.parseFloat(String(value));
+                if (!Number.isFinite(numeric)) {
+                  return String(value);
+                }
+                return numeric.toFixed(3);
+              }}
               message={resonance.message}
             >
               <p>
@@ -273,7 +282,16 @@ export default function ResonanceInsights({
               title="Band Compliance"
               status={compliance.status}
               primary={band?.percentage ?? null}
-              primaryFormatter={(value) => (value === null ? "—" : `${value.toFixed(1)}%`)}
+              primaryFormatter={(value) => {
+                if (value === null || value === undefined) {
+                  return "—";
+                }
+                const numeric = typeof value === "number" ? value : Number.parseFloat(String(value));
+                if (!Number.isFinite(numeric)) {
+                  return String(value);
+                }
+                return `${(numeric * 100).toFixed(1)}%`;
+              }}
               message={compliance.message}
             >
               <p>
@@ -302,9 +320,16 @@ export default function ResonanceInsights({
               title="Coherence Score"
               status={coherence.status}
               primary={metrics?.coherenceScore ?? null}
-              primaryFormatter={(value) =>
-                value === null ? "0.0%" : `${(value * 100).toFixed(1)}%`
-              }
+              primaryFormatter={(value) => {
+                if (value === null || value === undefined) {
+                  return "0.0%";
+                }
+                const numeric = typeof value === "number" ? value : Number.parseFloat(String(value));
+                if (!Number.isFinite(numeric)) {
+                  return String(value);
+                }
+                return `${(numeric * 100).toFixed(1)}%`;
+              }}
               message={coherence.message}
             >
               <p>{coherence.insight}</p>
@@ -314,9 +339,16 @@ export default function ResonanceInsights({
               title="Tail Health Score"
               status={tailHealth.status}
               primary={metrics?.tailHealthScore ?? null}
-              primaryFormatter={(value) =>
-                value === null ? "0.0%" : `${(value * 100).toFixed(1)}%`
-              }
+              primaryFormatter={(value) => {
+                if (value === null || value === undefined) {
+                  return "0.0%";
+                }
+                const numeric = typeof value === "number" ? value : Number.parseFloat(String(value));
+                if (!Number.isFinite(numeric)) {
+                  return String(value);
+                }
+                return `${(numeric * 100).toFixed(1)}%`;
+              }}
               message={tailHealth.message}
             >
               <p>{tailHealth.insight}</p>
@@ -348,7 +380,16 @@ export default function ResonanceInsights({
               title="p99 Latency"
               status={latency.status}
               primary={metrics?.p99Latency ?? null}
-              primaryFormatter={(value) => (value === null ? "—" : `${Math.round(value)} ms`)}
+              primaryFormatter={(value) => {
+                if (value === null || value === undefined) {
+                  return "—";
+                }
+                const numeric = typeof value === "number" ? value : Number.parseFloat(String(value));
+                if (!Number.isFinite(numeric)) {
+                  return String(value);
+                }
+                return `${Math.round(numeric)} ms`;
+              }}
               message={latency.message}
             >
               <p>{latency.insight}</p>
