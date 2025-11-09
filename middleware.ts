@@ -3,25 +3,16 @@ import type { NextRequest } from "next/server";
 
 const permissionsPolicy = [
   "accelerometer=()",
-  "ambient-light-sensor=()",
   "autoplay=()",
   "camera=()",
-  "display-capture=()",
-  "document-domain=()",
-  "encrypted-media=()",
   "fullscreen=(self)",
   "geolocation=()",
   "gyroscope=()",
-  "hid=()",
-  "magnetometer=()",
   "microphone=()",
-  "midi=()",
   "payment=()",
   "picture-in-picture=(self)",
   "publickey-credentials-get=()",
   "screen-wake-lock=()",
-  "usb=()",
-  "xr-spatial-tracking=()",
 ].join(", ");
 
 export function middleware(request: NextRequest) {

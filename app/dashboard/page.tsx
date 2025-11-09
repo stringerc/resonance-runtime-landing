@@ -41,18 +41,39 @@ export default async function DashboardPage() {
   const releaseChannel = process.env.RESONANCE_RELEASE_CHANNEL ?? undefined;
   const agentUrl = process.env.RESONANCE_AGENT_URL ?? null;
 
-  // Fetch user's license
-  const license = await prisma.license.findFirst({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: "desc" },
-  });
+  let license: Awaited<ReturnType<typeof prisma.license.findFirst>> = null;
+  let recentMetrics: Awaited<ReturnType<typeof prisma.userMetric.findMany>> = [];
+  let payments: Awaited<ReturnType<typeof prisma.payment.findMany>> = [];
 
-  // Fetch recent metrics
-  const recentMetrics = await prisma.userMetric.findMany({
-    where: { userId: session.user.id },
-    orderBy: { timestamp: "desc" },
-    take: 300,
-  });
+  try {
+    license = await prisma.license.findFirst({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error) {
+    console.error("Failed to fetch license for dashboard:", error);
+  }
+
+  try {
+    recentMetrics = await prisma.userMetric.findMany({
+      where: { userId: session.user.id },
+      orderBy: { timestamp: "desc" },
+      take: 300,
+    });
+  } catch (error) {
+    console.error("Failed to fetch recent metrics for dashboard:", error);
+  }
+
+  try {
+    payments = await prisma.payment.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+  } catch (error) {
+    console.error("Failed to fetch payments for dashboard:", error);
+  }
+
   const orderedMetrics = [...recentMetrics].reverse(); // For chronological display in sparklines
   const cardMetrics = recentMetrics.slice(0, 10);
 
@@ -133,13 +154,29 @@ export default async function DashboardPage() {
   const tailSeries = extractSeries("tailHealthScore");
   const latencySeries = extractSeries("p99Latency");
 
+  const planLabel = (() => {
+    if (!license) {
+      return "N/A";
+    }
+    const normalized = license.resonanceType
+      ? license.resonanceType.toLowerCase()
+      : license.type?.toLowerCase() ?? null;
+    if (!normalized) {
+      return "N/A";
+    }
+    switch (normalized) {
+      case "starter":
+      case "basic":
+        return "Starter";
+      case "pro":
+        return "Pro";
+      case "enterprise":
+        return "Enterprise";
+      default:
+        return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+    }
+  })();
 
-  // Fetch payments history
-  const payments = await prisma.payment.findMany({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-  });
 
   return (
     <div className="px-6 py-10">
@@ -189,9 +226,7 @@ export default async function DashboardPage() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
                   <span className="text-sm text-neutral-400">Plan</span>
-                  <div className="mt-1 text-lg font-semibold capitalize text-neutral-100">
-                    {license.type?.toLowerCase() === "pro" ? "Pro" : license.type?.toLowerCase() || "N/A"}
-                  </div>
+                  <div className="mt-1 text-lg font-semibold capitalize text-neutral-100">{planLabel}</div>
                 </div>
                 <div>
                   <span className="text-sm text-neutral-400">Status</span>
