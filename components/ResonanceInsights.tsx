@@ -382,7 +382,11 @@ export default function ResonanceInsights({
               <p>{latency.insight}</p>
               {!latencyPresent && (
                 <ul className="list-disc list-inside text-xs text-gray-600 space-y-1 mt-2">
-                  <li>Send percentile latency via the Resonance SDK (`sdk.metrics.recordLatency({ p99 })`).</li>
+                  <li>
+                    Send percentile latency via the Resonance SDK (
+                    <code>sdk.metrics.recordLatency({`{`} p99 {`}`})</code>
+                    ).
+                  </li>
                   <li>Or run <code>node resonance/bench/feed_phases.js --with-latency</code> to stream sample tail data while testing.</li>
                 </ul>
               )}
