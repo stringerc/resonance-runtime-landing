@@ -73,6 +73,14 @@ const toInteger = (value: string | number | null | undefined): number | null => 
   return null;
 };
 
+const toStringOrNull = (value: unknown): string | null => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  return null;
+};
+
 // Mark as dynamic to prevent static generation
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -229,25 +237,21 @@ export async function GET() {
       (derivedMode === 'adaptive' ? 2 : 1);
 
     const inferredVersion =
-      (typeof (resonanceData.version ?? resonanceData.agentVersion) === 'string'
-        ? (resonanceData.version ?? resonanceData.agentVersion)
-        : null) ??
-      metricsData?.version ??
-      process.env.RESONANCE_AGENT_VERSION ??
+      toStringOrNull(resonanceData.version ?? resonanceData.agentVersion) ??
+      toStringOrNull(metricsData?.version ?? null) ??
+      toStringOrNull(process.env.RESONANCE_AGENT_VERSION) ??
       null;
 
     const inferredChannel =
-      (typeof (resonanceData.releaseChannel ?? resonanceData.channel ?? resonanceData.mode) === 'string'
-        ? (resonanceData.releaseChannel ?? resonanceData.channel ?? (resonanceData.mode as string))
-        : null) ??
-      metricsData?.releaseChannel ??
-      process.env.RESONANCE_RELEASE_CHANNEL ??
+      toStringOrNull(resonanceData.releaseChannel ?? resonanceData.channel ?? resonanceData.mode) ??
+      toStringOrNull(metricsData?.releaseChannel ?? null) ??
+      toStringOrNull(process.env.RESONANCE_RELEASE_CHANNEL) ??
       derivedMode;
 
     const inferredCommit =
-      typeof (resonanceData.commit ?? resonanceData.gitCommit ?? resonanceData.gitHash) === 'string'
-        ? ((resonanceData.commit ?? resonanceData.gitCommit ?? resonanceData.gitHash) as string)
-        : process.env.RESONANCE_AGENT_COMMIT ?? null;
+      toStringOrNull(resonanceData.commit ?? resonanceData.gitCommit ?? resonanceData.gitHash) ??
+      toStringOrNull(process.env.RESONANCE_AGENT_COMMIT) ??
+      null;
 
     const response: MetricsResponsePayload = {
       R: metricsData?.R ?? toNumber(resonanceData.R as string | number | null | undefined) ?? 0.5,
