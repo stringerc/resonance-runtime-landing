@@ -8,13 +8,82 @@ export const runtime = 'nodejs';
 interface DiagnosticsPayload {
   code: string;
   timestamp: string;
-  checks: Record<string, unknown>;
+  checks: DiagnosticsChecks;
   error?: {
     message: string;
     type?: string;
     code?: string | number;
     stack?: string;
   };
+}
+
+interface PromotionCodeDiagnostics {
+  found: boolean;
+  id?: string;
+  active?: boolean;
+  code?: string;
+  coupon?: {
+    id?: string;
+    name?: string | null;
+    valid?: boolean;
+    percent_off?: number | null;
+    amount_off?: number | null;
+    currency?: string | null;
+    duration?: Stripe.Coupon.Duration;
+    livemode?: boolean;
+    max_redemptions?: number | null;
+    times_redeemed?: number;
+    expires_at?: number | null;
+    created?: string;
+  } | null;
+  restrictions?: {
+    first_time_transaction?: boolean | null;
+    minimum_amount?: number | null;
+    minimum_amount_currency?: string | null;
+    has_product_restrictions?: boolean;
+    has_price_restrictions?: boolean;
+    products?: string[];
+  };
+  message?: string;
+  expired?: boolean;
+  expiredAt?: string;
+  maxRedemptionsReached?: boolean;
+}
+
+interface CouponDiagnostics {
+  found: boolean;
+  id?: string;
+  name?: string | null;
+  valid?: boolean;
+  livemode?: boolean;
+  percent_off?: number | null;
+  amount_off?: number | null;
+  duration?: Stripe.Coupon.Duration;
+  message?: string;
+  error?: string;
+}
+
+interface ValidationDiagnostics {
+  canBeUsed: boolean;
+  isExpired: boolean;
+  maxRedemptionsReached: boolean;
+  hasFirstTimeRestriction: boolean;
+  hasMinimumAmount: boolean;
+  hasProductRestrictions: boolean;
+  productRestrictions: string[];
+  priceRestrictions: string[];
+}
+
+interface StripeModeDiagnostics {
+  livemode: boolean | "unknown";
+  apiKeyPrefix: string;
+}
+
+interface DiagnosticsChecks {
+  promotionCode?: PromotionCodeDiagnostics;
+  coupon?: CouponDiagnostics;
+  validation?: ValidationDiagnostics;
+  stripeMode?: StripeModeDiagnostics;
 }
 
 /**
@@ -69,7 +138,7 @@ export async function GET(req: NextRequest) {
           amount_off: promo.coupon.amount_off,
           currency: promo.coupon.currency,
           duration: promo.coupon.duration,
-          livemode: promo.coupon.livemode,
+          livemode: promo.coupon.livemode ?? promo.livemode,
           max_redemptions: promo.max_redemptions,
           times_redeemed: promo.times_redeemed,
           expires_at: promo.expires_at,
@@ -147,15 +216,16 @@ export async function GET(req: NextRequest) {
       } catch (couponError: unknown) {
         diagnostics.checks.coupon = {
           error: couponError instanceof Error ? couponError.message : "Unknown error",
+          found: false,
         };
       }
     }
 
     // Check Stripe mode (from API key or first coupon/promo found)
     diagnostics.checks.stripeMode = {
-      livemode: promotionCodes.data.length > 0 
-        ? promotionCodes.data[0].livemode 
-        : (diagnostics.checks.coupon?.livemode ?? "unknown"),
+      livemode: promotionCodes.data.length > 0
+        ? promotionCodes.data[0].livemode
+        : diagnostics.checks.coupon?.livemode ?? "unknown",
       apiKeyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 7) || "not set",
     };
   } catch (error: unknown) {
