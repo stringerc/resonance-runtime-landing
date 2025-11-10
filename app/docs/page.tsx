@@ -27,6 +27,11 @@ const docLinks = [
     href: "/docs/resonance-calculus-paper",
   },
   {
+    title: "Resonance Calculus Paper (PDF)",
+    description: "Direct download of the current manuscript draft.",
+    href: "/docs/A_Resonance_Calculus_for_Tail_Aware_Optimization_and_Control_of_Discrete_Event_Systems.pdf",
+  },
+  {
     title: "Phase Intake",
     description: "Feed phase samples into the controller via SDK or the bench harness.",
     href: "/docs/phase-intake",
