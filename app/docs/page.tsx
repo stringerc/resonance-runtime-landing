@@ -22,6 +22,11 @@ const docLinks = [
     href: "/docs/resonance-calculus-dossier.md", // Link to the local markdown file
   },
   {
+    title: "Resonance Calculus Paper",
+    description: "Research draft describing the Resonance Calculus framework and control laws.",
+    href: "/docs/resonance-calculus-paper",
+  },
+  {
     title: "Phase Intake",
     description: "Feed phase samples into the controller via SDK or the bench harness.",
     href: "/docs/phase-intake",
